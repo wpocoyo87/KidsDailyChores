@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+// frontend/pages/listTask.js
+
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import axios from "axios"; // Assuming you use axios for API calls
+import axios from "axios";
 
-const CheckedTaskPage = () => {
+const ListTaskPage = () => {
   const [tasks, setTasks] = useState([]);
   const [kid, setKid] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -12,18 +14,27 @@ const CheckedTaskPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchKidData = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const selectedKid = JSON.parse(localStorage.getItem("selectedKid"));
+        const selectedKidStr = localStorage.getItem("selectedKid");
         const token = localStorage.getItem("token");
 
-        if (!selectedKid || !token) {
-          throw new Error("Selected kid or token not found in localStorage");
+        if (!selectedKidStr || !token) {
+          console.error("Selected kid or token not found in localStorage");
+          return;
         }
 
+        const selectedKid = JSON.parse(selectedKidStr);
+
+        if (!selectedKid._id) {
+          console.error("Selected kid id is missing in localStorage");
+          return;
+        }
+
+        // Fetch kid data from backend using kidRouter
         const kidResponse = await axios.get(
-          `http://localhost:5000/api/kids/${selectedKid.id}`,
+          `http://localhost:5000/api/kids/${selectedKid._id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -32,8 +43,7 @@ const CheckedTaskPage = () => {
         );
 
         setKid(kidResponse.data);
-
-        fetchTasks(selectedKid.id, selectedDate);
+        await loadTasks(selectedKid._id, selectedDate);
       } catch (error) {
         console.error("Error fetching kid data:", error);
       } finally {
@@ -41,25 +51,17 @@ const CheckedTaskPage = () => {
       }
     };
 
-    fetchKidData();
-  }, []);
-
-  useEffect(() => {
-    if (kid) {
-      fetchTasks(kid.id, selectedDate);
-    }
+    fetchData();
   }, [selectedDate]);
 
-  const fetchTasks = async (kidId, date) => {
+  const loadTasks = async (kidId, date) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      // Fetch tasks using taskRouter
       const taskResponse = await axios.get(
-        `http://localhost:5000/api/tasks/${kidId}?date=${date.toISOString()}`,
+        `http://localhost:5000/api/tasks/${kidId}/tasks`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          params: { date: date.toISOString() }, // Assuming backend can filter tasks by date
         }
       );
       setTasks(taskResponse.data);
@@ -77,6 +79,8 @@ const CheckedTaskPage = () => {
 
     try {
       const token = localStorage.getItem("token");
+
+      // Update task completion status using taskRouter
       await axios.put(
         `http://localhost:5000/api/tasks/${updatedTasks[index]._id}`,
         { completed: updatedTasks[index].completed },
@@ -87,8 +91,27 @@ const CheckedTaskPage = () => {
         }
       );
 
-      const kidResponse = await axios.get(
-        `http://localhost:5000/api/kids/${kid.id}`,
+      // Update stars for the kid based on completed tasks
+      const updatedKid = await updateStarsForKid(kid._id, updatedTasks);
+      setKid(updatedKid);
+    } catch (error) {
+      console.error("Error updating task:", error);
+      updatedTasks[index].completed = !updatedTasks[index].completed;
+      setTasks(updatedTasks);
+    }
+  };
+
+  const updateStarsForKid = async (kidId, updatedTasks) => {
+    const completedTasks = updatedTasks.filter((task) => task.completed);
+    const totalStars = completedTasks.length; // Assuming 1 star per completed task
+
+    try {
+      const token = localStorage.getItem("token");
+
+      // Update stars for the kid using kidRouter
+      const updatedKidResponse = await axios.put(
+        `http://localhost:5000/api/kids/${kidId}`,
+        { stars: totalStars },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -96,28 +119,22 @@ const CheckedTaskPage = () => {
         }
       );
 
-      setKid(kidResponse.data);
+      return updatedKidResponse.data;
     } catch (error) {
-      console.error("Error updating task:", error);
+      console.error("Error updating stars for kid:", error);
+      return kid; // Return current kid state if update fails
     }
   };
 
   const handleDeleteTask = async (index) => {
-    const updatedTasks = [...tasks];
-    const taskId = updatedTasks[index]._id;
-    updatedTasks.splice(index, 1);
-    setTasks(updatedTasks);
+    const taskId = tasks[index]._id;
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/tasks/${taskId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
 
-      const kidResponse = await axios.get(
-        `http://localhost:5000/api/kids/${kid.id}`,
+      // Delete task using taskRouter
+      await axios.delete(
+        `http://localhost:5000/api/tasks/${kid._id}/tasks/${taskId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -125,7 +142,13 @@ const CheckedTaskPage = () => {
         }
       );
 
-      setKid(kidResponse.data);
+      const updatedTasks = [...tasks];
+      updatedTasks.splice(index, 1);
+      setTasks(updatedTasks);
+
+      // Update stars for the kid based on remaining completed tasks
+      const updatedKid = await updateStarsForKid(kid._id, updatedTasks);
+      setKid(updatedKid);
     } catch (error) {
       console.error("Error deleting task:", error);
     }
@@ -135,11 +158,39 @@ const CheckedTaskPage = () => {
     router.push("/insertTask");
   };
 
-  const handleCompleteAllTasks = () => {
-    router.push({
-      pathname: "/completedTask",
-      query: { kidName: kid.name },
-    });
+  const handleCompleteAllTasks = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const promises = tasks.map((task) =>
+        axios.put(
+          `http://localhost:5000/api/tasks/${task._id}`,
+          { completed: true },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+      );
+
+      await Promise.all(promises);
+
+      // Update stars for the kid based on completed tasks
+      const updatedKidResponse = await axios.put(
+        `http://localhost:5000/api/kids/${kid._id}`,
+        { stars: tasks.length },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setKid(updatedKidResponse.data);
+      setTasks(tasks.map((task) => ({ ...task, completed: true })));
+    } catch (error) {
+      console.error("Error completing all tasks:", error);
+    }
   };
 
   const handleKidChange = () => {
@@ -154,12 +205,16 @@ const CheckedTaskPage = () => {
     return <div>Loading...</div>;
   }
 
+  if (!kid) {
+    return <div>No kid data found.</div>;
+  }
+
   return (
     <div style={styles.body}>
       <div style={styles.container}>
         <h1>Tasks for {kid.name}</h1>
         <img
-          src={kid.avatar || "/images/default-avatar.png"}
+          src={kid.selectedAvatar || "/images/default-avatar.png"}
           alt={`Avatar of ${kid.name}`}
           style={styles.avatar}
         />
@@ -201,7 +256,7 @@ const CheckedTaskPage = () => {
           }}
           disabled={!tasks.every((task) => task.completed)}
         >
-          Completed
+          Complete All
         </button>
         <button onClick={handleKidChange} style={styles.changeKidBtn}>
           Change Kid
@@ -214,8 +269,7 @@ const CheckedTaskPage = () => {
 const styles = {
   body: {
     fontFamily: "Comic Sans MS, cursive",
-    backgroundColor: "rgb(var(--background-start-rgb))",
-    color: "rgb(var(--foreground-rgb))",
+    backgroundColor: "#f0f0f0",
     minHeight: "100vh",
     display: "flex",
     justifyContent: "center",
@@ -223,17 +277,23 @@ const styles = {
   },
   container: {
     textAlign: "center",
+    maxWidth: "600px",
+    width: "100%",
+    padding: "20px",
+    backgroundColor: "#fff",
+    borderRadius: "8px",
+    boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
   },
   avatar: {
     width: "100px",
     height: "100px",
     borderRadius: "50%",
+    marginBottom: "10px",
   },
   starsContainer: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: "10px",
     marginBottom: "20px",
   },
   starIcon: {
@@ -260,6 +320,9 @@ const styles = {
     display: "flex",
     alignItems: "center",
     marginBottom: "10px",
+    padding: "10px",
+    border: "1px solid #ccc",
+    borderRadius: "4px",
   },
   taskImage: {
     width: "50px",
@@ -267,32 +330,38 @@ const styles = {
     marginRight: "10px",
   },
   addTaskBtn: {
-    padding: "10px 20px",
+    display: "block",
+    width: "100%",
+    padding: "10px",
+    marginTop: "20px",
     backgroundColor: "#007bff",
     color: "#fff",
     border: "none",
     borderRadius: "4px",
     cursor: "pointer",
-    marginTop: "20px",
   },
   completeBtn: {
-    padding: "10px 20px",
-    backgroundColor: "green",
+    display: "block",
+    width: "100%",
+    padding: "10px",
+    marginTop: "20px",
+    backgroundColor: "#28a745",
     color: "#fff",
     border: "none",
     borderRadius: "4px",
     cursor: "pointer",
-    marginTop: "20px",
   },
   changeKidBtn: {
-    padding: "10px 20px",
-    backgroundColor: "#ffc107",
-    color: "#000",
+    display: "block",
+    width: "100%",
+    padding: "10px",
+    marginTop: "20px",
+    backgroundColor: "#6c757d",
+    color: "#fff",
     border: "none",
     borderRadius: "4px",
     cursor: "pointer",
-    marginTop: "20px",
   },
 };
 
-export default CheckedTaskPage;
+export default ListTaskPage;

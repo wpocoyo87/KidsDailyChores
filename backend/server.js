@@ -1,54 +1,34 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
-const dotenv = require("dotenv");
-const cors = require("cors");
-require("dotenv").config(); // Load environment variables from .env file
+import dotenv from "dotenv";
+dotenv.config();
+
+import express from "express";
+import cors from "cors";
+import connectDB from "./config/dbConfig.js"; // Assuming this handles MongoDB connection
+import { protect } from "./middlewares/authMiddleware.js";
+
+import { router as kidRoutes } from "./routes/kidRoutes.js"; // Import kidRoutes
+import { getPointsByKidId } from "./controllers/pointsController.js";
+import userRoutes from "./routes/userRoutes.js"; // Corrected import path
+import taskRoutes from "./routes/taskRoutes.js";
 
 const app = express();
+connectDB(); // Connect to MongoDB
 
-// Middleware
-app.use(bodyParser.json());
-app.use(cors());
-
-const dbURI = process.env.MONGODB_URI; // Use the connection string from the .env file
-
-mongoose
-  .connect(dbURI, {})
-  .then(() => {
-    console.log("Connected to MongoDB");
+// Allow requests from localhost:3000
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true, // enable set cookie with credentials
   })
-  .catch((error) => {
-    console.error("Error connecting to MongoDB:", error.message);
-  });
+);
 
-const UserSchema = new mongoose.Schema({
-  username: String,
-  email: String,
-  password: String,
-  kids: [
-    {
-      name: String,
-      age: Number,
-      selectedAvatar: String,
-    },
-  ],
-});
-
-const User = mongoose.model("User", UserSchema);
-
-app.post("/api/users/register", async (req, res) => {
-  try {
-    const { username, email, password, kids } = req.body;
-    const user = new User({ username, email, password, kids });
-    await user.save();
-    res.status(201).json({ message: "User registered successfully" });
-  } catch (error) {
-    res.status(400).json({ error: "Error registering user" });
-  }
-});
+app.use(express.json()); // Middleware to parse JSON requests
+app.use("/api/users", userRoutes); // Mount userRoutes at /api/users
+app.use("/api/kids", kidRoutes); // Mount kidRoutes at /api/kids with protect middleware
+app.use("/api/tasks", taskRoutes); // Mount taskRoutes at /api/tasks with protect middleware
+app.get("/api/kids/:kidId/points", protect, getPointsByKidId); // Endpoint for getting points by kidId
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

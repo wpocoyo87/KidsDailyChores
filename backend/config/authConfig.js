@@ -1,8 +1,8 @@
-const jwt = require("jsonwebtoken");
+// authConfig.js
 
-console.log("JWT Secret:", process.env.JWT_SECRET); // Debugging line
+import jwt from "jsonwebtoken";
 
-const generateToken = (userId) => {
+export const generateToken = (userId) => {
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT secret key is missing");
   }
@@ -11,5 +11,3 @@ const generateToken = (userId) => {
     expiresIn: "1h",
   });
 };
-
-module.exports = { generateToken };

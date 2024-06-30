@@ -35,7 +35,7 @@ const RegisterPage = () => {
   };
 
   const handleSelectAvatar = (kidId, avatarIndex) => {
-    const selectedAvatar = `/images/avatar${avatarIndex}.png`; // Constructing the URL based on index
+    const selectedAvatar = `/images/avatar${avatarIndex}.png`;
     const updatedKids = kids.map((kid) =>
       kid.id === kidId ? { ...kid, selectedAvatar } : kid
     );
@@ -43,15 +43,9 @@ const RegisterPage = () => {
   };
 
   const handleRegister = async (e) => {
-    e.preventDefault();
-    console.log(
-      "Submitting registration data...",
-      username,
-      email,
-      password,
-      kids
-    );
+    e.preventDefault(); // Prevent default form submission
 
+    // Validate inputs
     if (!username || !email || !password) {
       alert("Please fill out all fields for the user");
       return;
@@ -66,6 +60,7 @@ const RegisterPage = () => {
     }
 
     try {
+      // Send registration data to server
       const response = await axios.post(
         "http://localhost:5000/api/users/register",
         {
@@ -76,6 +71,7 @@ const RegisterPage = () => {
         }
       );
 
+      // Handle successful registration
       console.log("Registration successful:", response.data);
       setRegistrationSuccess(true);
       setUsername("");
@@ -84,7 +80,9 @@ const RegisterPage = () => {
       setKids([{ id: 1, name: "", age: "", selectedAvatar: null }]);
       router.push("/confirmation");
     } catch (error) {
+      // Handle registration error
       console.error("Error registering user:", error);
+      alert("Registration failed. Please try again later."); // Optionally handle error display or retry logic
     }
   };
 
@@ -229,7 +227,7 @@ const RegisterPage = () => {
               />
               <div style={styles.avatarContainer}>
                 {[...Array(numAvatars)].map((_, index) => {
-                  const avatarIndex = index + 1; // Avatar index starts from 1
+                  const avatarIndex = index + 1;
                   const avatarUrl = `/images/avatar${avatarIndex}.png`;
                   return (
                     <img

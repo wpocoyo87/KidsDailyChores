@@ -1,11 +1,21 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
+// backend/models/kidModel.js
 
-const kidSchema = new Schema({
-  name: String,
-  avatar: String,
-  stars: { type: Number, default: 0 },
-  tasks: [{ type: Schema.Types.ObjectId, ref: "Task" }],
+import mongoose from "mongoose";
+
+const kidSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  age: { type: Number, required: true },
+  selectedAvatar: { type: String, required: true },
+  tasks: [
+    {
+      description: { type: String, required: true },
+      image: { type: String },
+      date: { type: Date, default: Date.now },
+      completed: { type: Boolean, default: false },
+    },
+  ],
 });
 
-module.exports = mongoose.model("Kid", kidSchema);
+const Kid = mongoose.model("Kid", kidSchema);
+
+export default Kid;

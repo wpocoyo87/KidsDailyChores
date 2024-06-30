@@ -1,25 +1,43 @@
-const jwt = require("jsonwebtoken");
-const { JWT_SECRET } = require("../utils/constants");
-const errorHandler = require("../utils/errorHandler");
+import jwt from "jsonwebtoken";
+import asyncHandler from "express-async-handler";
+import User from "../models/userModel.js";
 
-const authMiddleware = (req, res, next) => {
-  // Get token from header
-  const token = req.header("Authorization");
-
-  // Check if not token
+// Middleware to verify the token
+export const verifyToken = (req, res, next) => {
+  const token = req.headers["authorization"]?.split(" ")[1];
   if (!token) {
-    return errorHandler(res, 401, "Authorization denied");
+    return res.status(401).json({ message: "No token provided." });
   }
 
-  try {
-    // Verify token
-    const decoded = jwt.verify(token, JWT_SECRET);
-
-    req.user = decoded.user;
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: "Failed to authenticate token." });
+    }
+    req.userId = decoded.id;
     next();
-  } catch (err) {
-    errorHandler(res, 401, "Token is not valid");
-  }
+  });
 };
 
-module.exports = authMiddleware;
+// Middleware to protect routes
+export const protect = asyncHandler(async (req, res, next) => {
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    try {
+      token = req.headers.authorization.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = await User.findById(decoded.id).select("-password");
+      next();
+    } catch (error) {
+      console.error(error);
+      res.status(401).json({ message: "Not authorized, token failed" });
+    }
+  }
+
+  if (!token) {
+    res.status(401).json({ message: "Not authorized, no token" });
+  }
+});

@@ -11,7 +11,7 @@ const InsertTask = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedDate, setSelectedDate] = useState(
     getFormattedDate(new Date())
-  ); // Initialize with current date
+  );
 
   // Function to fetch images from public/images/taskImages directory
   const fetchImages = () => {
@@ -26,51 +26,22 @@ const InsertTask = () => {
   // Function to format date as YYYY-MM-DD
   function getFormattedDate(date) {
     const year = date.getFullYear();
-    let month = (1 + date.getMonth()).toString();
-    month = month.length > 1 ? month : "0" + month;
-    let day = date.getDate().toString();
-    day = day.length > 1 ? day : "0" + day;
+    let month = (1 + date.getMonth()).toString().padStart(2, "0");
+    let day = date.getDate().toString().padStart(2, "0");
     return `${year}-${month}-${day}`;
   }
 
   useEffect(() => {
-    const fetchSelectedKid = async () => {
-      try {
-        // Assuming you have a token stored in localStorage
-        const token = localStorage.getItem("token");
-
-        // Fetch the selected kid's details from the backend
-        const response = await axios.get(
-          `http://localhost:5000/api/kids/${selectedKidId}`, // Adjust endpoint as per your backend
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        // Update selectedKid state with fetched data
-        setSelectedKid(response.data);
-      } catch (error) {
-        console.error("Error fetching selected kid:", error);
-        // Handle error, e.g., redirect to login page or show error message
-      }
-    };
-
-    // Fetch selected kid from localStorage on component mount
     const storedSelectedKid = JSON.parse(localStorage.getItem("selectedKid"));
     if (storedSelectedKid) {
       setSelectedKid(storedSelectedKid);
-
-      // Call fetchSelectedKid to get the kid's avatar and name
-      fetchSelectedKid();
     }
   }, []);
 
   const handleAddTask = () => {
     if (selectedKid) {
       const newTask = {
-        kidId: selectedKid.id,
+        kidId: selectedKid._id,
         description,
         image,
         date: selectedDate,
@@ -79,15 +50,42 @@ const InsertTask = () => {
       setDescription("");
       setImage("");
       setSelectedImage(null);
-      setSelectedDate(getFormattedDate(new Date())); // Reset date to current date after adding task
+      setSelectedDate(getFormattedDate(new Date()));
     }
   };
 
-  const handleSaveTasks = () => {
-    const existingTasks = JSON.parse(localStorage.getItem("tasks")) || [];
-    const updatedTasks = [...existingTasks, ...tasks];
-    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
-    router.push("/checkedTask");
+  const handleSaveTasks = async () => {
+    try {
+      if (!selectedKid) {
+        console.error("No selected kid to save tasks for");
+        return;
+      }
+
+      const token = localStorage.getItem("token");
+
+      const tasksToSave = tasks.map((task) => ({
+        kidId: selectedKid._id,
+        description: task.description,
+        image: task.image,
+        date: task.date,
+      }));
+
+      await axios.post(
+        `http://localhost:5000/api/${selectedKid._id}/tasks`,
+        tasksToSave,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Tasks saved successfully");
+      router.push("/listTask"); // Navigate to the listTask page
+    } catch (error) {
+      console.error("Error saving tasks:", error);
+    }
   };
 
   const handleDeleteTask = (index) => {
@@ -108,7 +106,7 @@ const InsertTask = () => {
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      backgroundImage: `url("/images/bird.gif")`, // Background image URL
+      backgroundImage: "url('/images/background.jpg')",
       backgroundSize: "cover",
       backgroundPosition: "center",
     },
@@ -116,7 +114,7 @@ const InsertTask = () => {
       maxWidth: "600px",
       width: "100%",
       padding: "20px",
-      backgroundColor: "rgba(255, 255, 255, 0.9)", // Semi-transparent white background
+      backgroundColor: "rgba(255, 255, 255, 0.9)",
       borderRadius: "8px",
       boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
     },
@@ -213,7 +211,7 @@ const InsertTask = () => {
         {selectedKid && (
           <div style={styles.kidInfoContainer}>
             <img
-              src={selectedKid.selectedAvatar || "/images/default-avatar.png"} // Use default avatar if selectedAvatar is not available
+              src={selectedKid.selectedAvatar || "/images/default-avatar.png"}
               alt={`Avatar of ${selectedKid.name}`}
               style={styles.kidAvatar}
             />

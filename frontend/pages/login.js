@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 
 const LoginPage = () => {
@@ -23,20 +23,23 @@ const LoginPage = () => {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.message || "Login failed");
+        const text = await response.text();
+        throw new Error(text);
       }
 
-      // Store the token in local storage
-      localStorage.setItem("token", data.token);
+      const { token } = await response.json();
+      console.log("Login successful, token:", token);
 
-      // Redirect to the choosekids page after successful login
-      router.push("/choosekids");
+      // Save token and email to localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("email", email);
+
+      // Redirect to the desired page after login
+      router.push("/choosekids"); // Adjust this path as per your routes
     } catch (error) {
       console.error("Login error:", error);
-      setError(error.message || "Invalid login credentials. Please try again.");
+      setError("Invalid login credentials. Please try again.");
     }
   };
 
@@ -71,7 +74,6 @@ const LoginPage = () => {
   );
 };
 
-// CSS styles defined as JavaScript objects
 const styles = {
   body: {
     fontFamily: "Comic Sans MS, cursive",

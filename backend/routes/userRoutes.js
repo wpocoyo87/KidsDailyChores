@@ -1,33 +1,20 @@
-const express = require("express");
-const bcrypt = require("bcryptjs");
-const User = require("../models/userModel");
+import express from "express";
+import {
+  getUserByEmail,
+  loginUser,
+  registerUser,
+} from "../controllers/userController.js";
+import { protect } from "../middlewares/authMiddleware.js";
+
 const router = express.Router();
 
-// Login route
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+// POST /api/users/register
+router.post("/register", registerUser);
 
-  try {
-    // Check if user exists
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
+// POST /api/users/login
+router.post("/login", loginUser);
 
-    // Compare passwords
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
+// GET /api/users/profile/:email
+router.get("/profile/:email", protect, getUserByEmail); // Use protect middleware here
 
-    // Generate token (if using JWT, implement your token generation logic here)
-    const token = "your_generated_token"; // Replace with actual token generation logic
-
-    res.json({ token });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-module.exports = router;
+export default router;

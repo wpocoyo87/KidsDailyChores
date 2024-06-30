@@ -7,13 +7,24 @@ const ChooseKidsPage = () => {
   const [selectedKid, setSelectedKid] = useState(null);
   const [kids, setKids] = useState([]);
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem("token");
+        const email = localStorage.getItem("email");
+        console.log("Token:", token);
+        console.log("Email:", email);
+
+        if (!token || !email) {
+          throw new Error("No token or email found. Please log in again.");
+        }
+
+        // Fetch user data using the token and email
         const response = await axios.get(
-          "http://localhost:5000/api/users/profile",
+          `http://localhost:5000/api/users/profile/${email}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -21,16 +32,22 @@ const ChooseKidsPage = () => {
             },
           }
         );
+
         setUser(response.data);
-        setKids(response.data.kids); // Assuming response.data contains kids array
+        setKids(response.data.kids || []); // Ensure kids array is properly set
       } catch (error) {
         console.error("Error fetching user data:", error);
-        // Handle error, e.g., redirect to login page or show error message
+        setError(
+          error.response?.data?.message ||
+            "Failed to fetch user data. Please try again."
+        ); // Set error message
+      } finally {
+        setLoading(false); // Update loading state
       }
     };
 
     fetchUserData();
-  }, []); // Add router as a dependency to re-fetch data when navigating to /choosekids
+  }, [router]);
 
   const handleSelection = (kid) => {
     setSelectedKid(kid);
@@ -38,11 +55,23 @@ const ChooseKidsPage = () => {
     router.push("/main"); // Redirect to the main page after selecting a kid
   };
 
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+
   return (
     <div style={styles.body}>
       <div style={styles.formContainer}>
         <h1 style={styles.title}>Select a Kid</h1>
-        {user && <p>Welcome, {user.username}</p>}
+        {user && (
+          <div>
+            <p>Hi {user.username}, Choose your Kid!</p>
+          </div>
+        )}
         <div style={styles.kidsContainer}>
           {kids.length === 0 ? (
             <p>No kids registered.</p>
@@ -60,7 +89,7 @@ const ChooseKidsPage = () => {
                 onClick={() => handleSelection(kid)}
               >
                 <img
-                  src={kid.selectedAvatar || "/images/default-avatar.png"} // Use default avatar if selectedAvatar is not available
+                  src={kid.selectedAvatar || "/images/default-avatar.png"}
                   alt={kid.name}
                   style={styles.kidAvatar}
                 />
@@ -83,7 +112,7 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    backgroundImage: "url('/images/background.jpg')",
+    backgroundImage: "url(/images/background.jpg)",
     backgroundSize: "cover",
     backgroundPosition: "center",
   },

@@ -1,32 +1,105 @@
-// backend/services/kidService.js
+//kidService.js
 
-const Kid = require("../models/kidModel");
+import Kid from "../models/kidModel.js";
 
-async function getAllKids() {
-  return await Kid.find();
-}
+// Create a new kid
+export const createKid = async (data) => {
+  const { name, age, selectedAvatar } = data;
 
-async function getKidById(id) {
-  return await Kid.findById(id);
-}
+  const newKid = new Kid({
+    name,
+    age,
+    selectedAvatar,
+    tasks: [],
+  });
 
-async function createKid(data) {
-  const kid = new Kid(data);
-  return await kid.save();
-}
+  const savedKid = await newKid.save();
+  return savedKid;
+};
 
-async function updateKid(id, data) {
-  return await Kid.findByIdAndUpdate(id, data, { new: true });
-}
+// Get all kids
+export const getAllKids = async () => {
+  const kids = await Kid.find();
+  return kids;
+};
 
-async function deleteKid(id) {
-  return await Kid.findByIdAndDelete(id);
-}
+// Get a single kid by ID
+export const getKidById = async (id) => {
+  const kid = await Kid.findById(id);
+  return kid;
+};
 
-module.exports = {
-  getAllKids,
-  getKidById,
-  createKid,
-  updateKid,
-  deleteKid,
+// Update a kid
+export const updateKid = async (id, data) => {
+  const { name, age, selectedAvatar } = data;
+
+  const updatedKid = await Kid.findByIdAndUpdate(
+    id,
+    {
+      name,
+      age,
+      selectedAvatar,
+    },
+    { new: true }
+  );
+
+  return updatedKid;
+};
+
+// Delete a kid
+export const deleteKid = async (id) => {
+  const deletedKid = await Kid.findByIdAndDelete(id);
+  return deletedKid;
+};
+
+// Get tasks for a kid
+export const getTasksForKid = async (id) => {
+  const kid = await Kid.findById(id);
+  return kid ? kid.tasks : null;
+};
+
+// Add a task to a kid
+export const addTaskToKid = async (id, data) => {
+  const { description, image, date } = data;
+
+  const kid = await Kid.findById(id);
+  if (kid) {
+    kid.tasks.push({ description, image, date, completed: false });
+    await kid.save();
+  }
+
+  return kid;
+};
+
+// Update a task for a kid
+export const updateTaskForKid = async (id, taskId, data) => {
+  const { description, image, date, completed } = data;
+
+  const kid = await Kid.findById(id);
+  if (kid) {
+    const task = kid.tasks.id(taskId);
+    if (task) {
+      task.description = description;
+      task.image = image;
+      task.date = date;
+      task.completed = completed;
+      await kid.save();
+    }
+  }
+
+  return kid;
+};
+
+// Delete a task for a kid
+export const deleteTaskForKid = async (id, taskId) => {
+  const kid = await Kid.findById(id);
+  if (kid) {
+    const task = kid.tasks.id(taskId);
+    if (task) {
+      task.remove();
+      await kid.save();
+    }
+  }
+
+  return kid;
 };

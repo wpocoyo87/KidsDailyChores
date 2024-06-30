@@ -1,11 +1,6 @@
-// Middleware to handle errors
-const errorHandler = (err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    error: {
-      message: err.message || "Internal Server Error",
-    },
-  });
+//utils/errorHandler.js
+const errorHandler = (res, statusCode, message) => {
+  return res.status(statusCode).json({ error: message });
 };
 
 module.exports = errorHandler;

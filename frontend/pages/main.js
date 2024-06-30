@@ -7,13 +7,16 @@ const MainPage = () => {
   const router = useRouter();
   const [selectedKid, setSelectedKid] = useState(null);
   const [user, setUser] = useState(null);
+  const [points, setPoints] = useState(0);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem("token");
+        const email = localStorage.getItem("email"); // Assuming you have stored the email somewhere
+
         const response = await axios.get(
-          "http://localhost:5000/api/users/profile",
+          `http://localhost:5000/api/users/profile/${email}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -24,6 +27,18 @@ const MainPage = () => {
         setUser(response.data);
         const selectedKidData = JSON.parse(localStorage.getItem("selectedKid"));
         setSelectedKid(selectedKidData);
+
+        // Fetch the accumulated points for the selected kid
+        const pointsResponse = await axios.get(
+          `http://localhost:5000/api/kids/${selectedKidData._id}/points`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setPoints(pointsResponse.data.points);
       } catch (error) {
         console.error("Error fetching user data:", error);
         // Handle error, e.g., redirect to login page or show error message
@@ -47,6 +62,7 @@ const MainPage = () => {
     <div style={styles.body}>
       <div style={styles.container}>
         <h1>Welcome, {user && user.username}</h1>
+        <h3>Kid Name : {selectedKid.name}</h3>
         <div style={styles.avatarContainer}>
           <img
             src={selectedKid.selectedAvatar || "/images/default-avatar.png"} // Use default avatar if selectedAvatar is not available
@@ -54,13 +70,13 @@ const MainPage = () => {
             style={styles.avatar}
           />
         </div>
-        <p>Stars Earned: {selectedKid.stars}</p>
+        <p>Star(s) Earned: {points}</p>
         <div style={styles.links}>
           <Link href="/insertTask">
             <button style={styles.button}>Insert Task</button>
           </Link>
-          <Link href="/checkedTask">
-            <button style={styles.button}>Checked Task</button>
+          <Link href="/listTask">
+            <button style={styles.button}>Check Task</button>
           </Link>
           <Link href="/choosekids">
             <button style={styles.button}>Change Kid</button>

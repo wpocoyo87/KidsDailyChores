@@ -3,7 +3,7 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import Link from "next/link";
 
-const MainPage = () => {
+const KidProfilePage = () => {
   const router = useRouter();
   const [selectedKid, setSelectedKid] = useState(null);
   const [user, setUser] = useState(null);
@@ -52,7 +52,7 @@ const MainPage = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("selectedKid");
-    router.push("/login");
+    router.push("/");
   };
 
   if (!selectedKid) {
@@ -143,4 +143,4 @@ const styles = {
   },
 };
 
-export default MainPage;
+export default KidProfilePage;

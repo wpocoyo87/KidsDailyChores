@@ -24,7 +24,7 @@ const ChooseKidsPage = () => {
 
         // Fetch user data using the token and email
         const response = await axios.get(
-          `http://localhost:5000/api/users/profile/${email}`,
+          `http://localhost:5000/api/users//${email}`,
           {
             headers: {
               "Content-Type": "application/json",

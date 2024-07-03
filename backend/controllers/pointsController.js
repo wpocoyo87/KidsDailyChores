@@ -1,5 +1,3 @@
-//backend/controllers/pointsController.js
-
 import PointsModel from "../models/PointsModel.js";
 
 export const getPointsByKidId = async (req, res) => {

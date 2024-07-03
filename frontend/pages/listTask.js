@@ -61,7 +61,7 @@ const ListTaskPage = () => {
       const taskResponse = await axios.get(
         `http://localhost:5000/api/tasks/${kidId}/tasks`,
         {
-          params: { date: date.toISOString() }, // Assuming backend can filter tasks by date
+          params: { date: date.toISOString() },
         }
       );
       setTasks(taskResponse.data);

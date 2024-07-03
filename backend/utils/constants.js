@@ -1,4 +1,3 @@
-//utils/constants.js
 const DEFAULT_AVATARS = [
   "avatar1.png",
   "avatar2.png",

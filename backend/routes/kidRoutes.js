@@ -1,5 +1,3 @@
-//backend/routes/kidRoutes.js
-
 import express from "express";
 import {
   createKid,
@@ -18,20 +16,23 @@ import { getPointsByKidId } from "../controllers/pointsController.js";
 const router = express.Router();
 
 router.route("/").post(protect, createKid).get(protect, getAllKids);
+
 router
   .route("/:id")
   .get(protect, getKidById)
   .put(protect, updateKid)
   .delete(protect, deleteKid);
+
 router
-  .route("/:id/tasks")
+  .route("/tasks/:kidId")
   .get(protect, getTasksForKid)
   .post(protect, addTaskToKid);
+
 router
-  .route("/:id/tasks/:taskId")
+  .route("/tasks/:kidId/:taskId")
   .put(protect, updateTaskForKid)
   .delete(protect, deleteTaskForKid);
 
-router.route("/:kidId/points").get(protect, getPointsByKidId);
+router.route("/points/:kidId").get(protect, getPointsByKidId);
 
-export { router };
+export default router;

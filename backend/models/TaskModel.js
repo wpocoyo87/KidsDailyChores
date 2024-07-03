@@ -1,19 +1,13 @@
-// backend/models/TaskModel.js
+// models/Task.js
 
 import mongoose from "mongoose";
 
-const taskSchema = new mongoose.Schema({
-  kidId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Kid",
-    required: true,
-  },
-  description: { type: String, required: true },
-  image: { type: String },
-  date: { type: Date, default: Date.now },
+const TaskSchema = new mongoose.Schema({
+  name: { type: String, required: true },
   completed: { type: Boolean, default: false },
+  // tambahkan butiran lain seperti tarikh, id pengguna, dsb.
 });
 
-const Task = mongoose.model("Task", taskSchema);
+const Task = mongoose.model("Task", TaskSchema);
 
 export default Task;

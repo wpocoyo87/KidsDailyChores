@@ -74,10 +74,14 @@ const RegisterPage = () => {
       // Handle successful registration
       console.log("Registration successful:", response.data);
       setRegistrationSuccess(true);
+
+      // Reset form state after successful registration
       setUsername("");
       setEmail("");
       setPassword("");
       setKids([{ id: 1, name: "", age: "", selectedAvatar: null }]);
+
+      // Redirect to confirmation page
       router.push("/confirmation");
     } catch (error) {
       // Handle registration error

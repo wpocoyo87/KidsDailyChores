@@ -41,7 +41,6 @@ const InsertTask = () => {
   const handleAddTask = () => {
     if (selectedKid) {
       const newTask = {
-        kidId: selectedKid._id,
         description,
         image,
         date: selectedDate,
@@ -57,21 +56,24 @@ const InsertTask = () => {
   const handleSaveTasks = async () => {
     try {
       if (!selectedKid) {
-        console.error("No selected kid to save tasks for");
+        console.error("No kid selected to save tasks for");
         return;
       }
 
       const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("Token not found in localStorage");
+        return;
+      }
 
       const tasksToSave = tasks.map((task) => ({
-        kidId: selectedKid._id,
         description: task.description,
         image: task.image,
         date: task.date,
       }));
 
       await axios.post(
-        `http://localhost:5000/api/${selectedKid._id}/tasks`,
+        `http://localhost:5000/api/kids/tasks/${selectedKid._id}`,
         tasksToSave,
         {
           headers: {
@@ -82,7 +84,7 @@ const InsertTask = () => {
       );
 
       console.log("Tasks saved successfully");
-      router.push("/listTask"); // Navigate to the listTask page
+      router.push("/listTask");
     } catch (error) {
       console.error("Error saving tasks:", error);
     }

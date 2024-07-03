@@ -1,12 +1,10 @@
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 
-// Create an Axios instance
 const instance = axios.create({
   baseURL: "http://localhost:5000/api",
 });
 
-// Add a request interceptor to include the token in headers
 instance.interceptors.request.use(
   async (config) => {
     const token = localStorage.getItem("token");
@@ -30,7 +28,6 @@ instance.interceptors.request.use(
           localStorage.setItem("refreshToken", newRefreshToken);
           config.headers.Authorization = `Bearer ${newToken}`;
         } catch (error) {
-          // Handle error (e.g., redirect to login)
           console.error("Error refreshing token", error);
           localStorage.removeItem("token");
           localStorage.removeItem("refreshToken");
@@ -46,7 +43,6 @@ instance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Add a response interceptor to handle 401 errors
 instance.interceptors.response.use(
   (response) => response,
   (error) => {

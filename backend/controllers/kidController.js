@@ -1,14 +1,15 @@
-//backend/controller/kidController.js
 import Kid from "../models/kidModel.js";
+import Task from "../models/TaskModel.js";
 
 export const createKid = async (req, res) => {
-  const { name, age, selectedAvatar } = req.body;
+  const { name, age, selectedAvatar, birthDate } = req.body;
 
   try {
     const newKid = new Kid({
       name,
       age,
       selectedAvatar,
+      birthDate,
       tasks: [],
     });
 
@@ -43,7 +44,7 @@ export const getKidById = async (req, res) => {
 };
 
 export const updateKid = async (req, res) => {
-  const { name, age, selectedAvatar } = req.body;
+  const { name, age, selectedAvatar, birthDate } = req.body;
 
   try {
     const updatedKid = await Kid.findByIdAndUpdate(
@@ -52,6 +53,7 @@ export const updateKid = async (req, res) => {
         name,
         age,
         selectedAvatar,
+        birthDate,
       },
       { new: true }
     );
@@ -81,89 +83,91 @@ export const deleteKid = async (req, res) => {
 
 export const getTasksForKid = async (req, res) => {
   try {
-    const kid = await Kid.findById(req.params.id);
+    const userId = req.userId; // Dapatkan userId dari req setelah verifikasi token
+    const kid = await Kid.findOne({ _id: req.params.kidId, user: userId }); // Mencari kid berdasarkan ID dan user ID
+
     if (kid) {
       res.status(200).json(kid.tasks);
     } else {
-      res.status(404).json({ message: "Kid not found" });
+      res.status(404).json({ message: "Kid not found for this user" });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 export const addTaskToKid = async (req, res) => {
+  const { kidId } = req.params;
   const { description, image, date } = req.body;
 
   try {
-    const kid = await Kid.findById(req.params.id);
-    if (kid) {
-      kid.tasks.push({ description, image, date, completed: false });
-      await kid.save();
-      res.status(200).json(kid);
-    } else {
-      res.status(404).json({ message: "Kid not found" });
+    const kid = await Kid.findById(kidId);
+    if (!kid) {
+      return res.status(404).json({ message: "Kid not found" });
     }
+
+    const newTask = {
+      description,
+      image,
+      date,
+    };
+
+    kid.tasks.push(newTask);
+    await kid.save();
+
+    res.status(201).json({ message: "Task added successfully", newTask });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
 export const updateTaskForKid = async (req, res) => {
-  const { taskId, description, image, date, completed } = req.body;
+  const { kidId, taskId } = req.params;
+  const { description, image, date, completed } = req.body;
 
   try {
-    const kid = await Kid.findById(req.params.id);
-    if (kid) {
-      const task = kid.tasks.id(taskId);
-      if (task) {
-        task.description = description;
-        task.image = image;
-        task.date = date;
-        task.completed = completed;
-        await kid.save();
-        res.status(200).json(kid);
-      } else {
-        res.status(404).json({ message: "Task not found" });
-      }
-    } else {
-      res.status(404).json({ message: "Kid not found" });
+    const kid = await Kid.findById(kidId);
+    if (!kid) {
+      return res.status(404).json({ message: "Kid not found" });
     }
+
+    const task = kid.tasks.id(taskId);
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    task.description = description;
+    task.image = image;
+    task.date = date;
+    task.completed = completed;
+
+    await kid.save();
+    res.status(200).json({ message: "Task updated successfully", task });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
 export const deleteTaskForKid = async (req, res) => {
-  const { taskId } = req.params;
+  const { kidId, taskId } = req.params;
 
   try {
-    const kid = await Kid.findById(req.params.id);
-    if (kid) {
-      const task = kid.tasks.id(taskId);
-      if (task) {
-        task.remove();
-        await kid.save();
-        res.status(200).json(kid);
-      } else {
-        res.status(404).json({ message: "Task not found" });
-      }
-    } else {
-      res.status(404).json({ message: "Kid not found" });
+    const kid = await Kid.findById(kidId);
+    if (!kid) {
+      return res.status(404).json({ message: "Kid not found" });
     }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
-export default {
-  createKid,
-  getAllKids,
-  getKidById,
-  updateKid,
-  deleteKid,
-  getTasksForKid,
-  addTaskToKid,
-  updateTaskForKid,
-  deleteTaskForKid,
+    const task = kid.tasks.id(taskId);
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    task.remove();
+    await kid.save();
+
+    res.status(200).json(kid.tasks); // Return updated tasks after deletion
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
 };

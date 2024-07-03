@@ -46,8 +46,8 @@ export const getUserByEmail = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email: req.params.email });
 
   if (user) {
-    res.json(user); // Return user if found
+    res.json(user);
   } else {
-    res.status(404).json({ message: "User not found" }); // Handle user not found case
+    res.status(404).json({ message: "User not found" });
   }
 });

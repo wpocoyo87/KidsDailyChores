@@ -1,5 +1,3 @@
-//backend/models/PointsModel.js
-
 import mongoose from "mongoose";
 
 const pointsSchema = new mongoose.Schema({

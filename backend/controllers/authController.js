@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js"; // Assuming User model is defined
+import User from "../models/User.js";
 
 const { JWT_SECRET } = process.env;
 
@@ -23,7 +23,7 @@ export const login = async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
-      expiresIn: "1h", // Example: Token expires in 1 hour
+      expiresIn: "2h",
     });
 
     res.status(200).json({ token });

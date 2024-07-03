@@ -13,7 +13,7 @@ export const verifyToken = (req, res, next) => {
     if (err) {
       return res.status(401).json({ message: "Failed to authenticate token." });
     }
-    req.userId = decoded.id;
+    req.userId = decoded.id; // Save decoded user ID in request object
     next();
   });
 };
@@ -28,16 +28,21 @@ export const protect = asyncHandler(async (req, res, next) => {
   ) {
     try {
       token = req.headers.authorization.split(" ")[1];
+      console.log("Token found:", token); // Debug log
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id).select("-password");
-      next();
+      console.log("Decoded token:", decoded); // Debug log
+
+      // Fetch user from database using decoded user ID
+      req.user = await User.findById(decoded.userId).select("-password");
+      console.log("Authenticated user:", req.user); // Debug log
+
+      next(); // Move to the next middleware
     } catch (error) {
-      console.error(error);
+      console.error("Token verification failed:", error);
       res.status(401).json({ message: "Not authorized, token failed" });
     }
-  }
-
-  if (!token) {
+  } else {
+    console.error("Token not provided");
     res.status(401).json({ message: "Not authorized, no token" });
   }
 });

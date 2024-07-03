@@ -1,15 +1,12 @@
+// server.js
 import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
 import cors from "cors";
-import connectDB from "./config/dbConfig.js"; // Assuming this handles MongoDB connection
-import { protect } from "./middlewares/authMiddleware.js";
-
-import { router as kidRoutes } from "./routes/kidRoutes.js"; // Import kidRoutes
-import { getPointsByKidId } from "./controllers/pointsController.js";
-import userRoutes from "./routes/userRoutes.js"; // Corrected import path
-import taskRoutes from "./routes/taskRoutes.js";
+import connectDB from "./config/dbConfig.js";
+import { router as userRoutes } from "./routes/userRoutes.js"; // Menggunakan named import
+import kidRoutes from "./routes/kidRoutes.js"; // Menggunakan default import
 
 const app = express();
 connectDB(); // Connect to MongoDB
@@ -22,11 +19,9 @@ app.use(
   })
 );
 
-app.use(express.json()); // Middleware to parse JSON requests
-app.use("/api/users", userRoutes); // Mount userRoutes at /api/users
-app.use("/api/kids", kidRoutes); // Mount kidRoutes at /api/kids with protect middleware
-app.use("/api/tasks", taskRoutes); // Mount taskRoutes at /api/tasks with protect middleware
-app.get("/api/kids/:kidId/points", protect, getPointsByKidId); // Endpoint for getting points by kidId
+app.use(express.json());
+app.use("/api/users", userRoutes);
+app.use("/api/kids", kidRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

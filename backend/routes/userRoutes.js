@@ -1,3 +1,5 @@
+// userRoutes.js
+
 import express from "express";
 import {
   getUserByEmail,
@@ -17,4 +19,4 @@ router.post("/login", loginUser);
 // GET /api/users/profile/:email
 router.get("/profile/:email", protect, getUserByEmail); // Use protect middleware here
 
-export default router;
+export { router };

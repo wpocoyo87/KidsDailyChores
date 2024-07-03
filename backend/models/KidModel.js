@@ -1,17 +1,29 @@
-// backend/models/kidModel.js
+// models/kidModel.js
 
 import mongoose from "mongoose";
 
 const kidSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  age: { type: Number, required: true },
-  selectedAvatar: { type: String, required: true },
+  name: {
+    type: String,
+    required: true,
+  },
+  age: {
+    type: Number,
+    required: true,
+  },
+  selectedAvatar: {
+    type: String,
+    default: "/images/default-avatar.png",
+  },
+  birthDate: {
+    type: Date,
+    required: true,
+  },
   tasks: [
     {
-      description: { type: String, required: true },
-      image: { type: String },
-      date: { type: Date, default: Date.now },
-      completed: { type: Boolean, default: false },
+      description: String,
+      image: String,
+      date: Date,
     },
   ],
 });

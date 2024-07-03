@@ -1,5 +1,3 @@
-// components/TaskList.js
-
 const TaskList = ({ tasks }) => {
   return (
     <ul style={styles.taskList}>

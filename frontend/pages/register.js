@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useRouter } from "next/router";
 
 const RegisterPage = () => {
@@ -8,109 +7,118 @@ const RegisterPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [kids, setKids] = useState([
-    { id: 1, name: "", age: "", selectedAvatar: null },
+    { id: Date.now(), name: "", birthDate: "", selectedAvatar: "", gender: "" },
   ]);
+  const [error, setError] = useState(null);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
-  const numAvatars = 8; // Number of avatar images you have (avatar1.png to avatar8.png)
+  // Assume we have 8 avatars
+  const numAvatars = 8;
 
   const handleAddKid = () => {
-    const newKidId = kids.length + 1;
     setKids([
       ...kids,
-      { id: newKidId, name: "", age: "", selectedAvatar: null },
+      {
+        id: Date.now(),
+        name: "",
+        birthDate: "",
+        selectedAvatar: "",
+        gender: "",
+      },
     ]);
   };
 
-  const handleRemoveKid = (kidId) => {
-    const updatedKids = kids.filter((kid) => kid.id !== kidId);
-    setKids(updatedKids);
+  const handleKidDetailsChange = (id, field, value) => {
+    const newKids = kids.map((kid) =>
+      kid.id === id ? { ...kid, [field]: value } : kid
+    );
+    setKids(newKids);
   };
 
-  const handleKidDetailsChange = (kidId, field, value) => {
-    const updatedKids = kids.map((kid) =>
-      kid.id === kidId ? { ...kid, [field]: value } : kid
-    );
-    setKids(updatedKids);
+  const handleSelectAvatar = (id, avatarIndex) => {
+    const avatarUrl = `/images/avatar${avatarIndex}.png`;
+    handleKidDetailsChange(id, "selectedAvatar", avatarUrl);
   };
 
-  const handleSelectAvatar = (kidId, avatarIndex) => {
-    const selectedAvatar = `/images/avatar${avatarIndex}.png`;
-    const updatedKids = kids.map((kid) =>
-      kid.id === kidId ? { ...kid, selectedAvatar } : kid
-    );
-    setKids(updatedKids);
+  const handleRemoveKid = (id) => {
+    setKids(kids.filter((kid) => kid.id !== id));
   };
 
   const handleRegister = async (e) => {
-    e.preventDefault(); // Prevent default form submission
-
-    // Validate inputs
-    if (!username || !email || !password) {
-      alert("Please fill out all fields for the user");
-      return;
-    }
-
-    const isKidsValid = kids.every(
-      (kid) => kid.name && kid.age && kid.selectedAvatar
-    );
-    if (!isKidsValid) {
-      alert("Please fill out all fields for all kids");
+    e.preventDefault();
+    if (
+      !username ||
+      !email ||
+      !password ||
+      kids.some(
+        (kid) =>
+          !kid.name || !kid.birthDate || !kid.gender || !kid.selectedAvatar
+      )
+    ) {
+      alert("Please fill out all fields");
       return;
     }
 
     try {
-      // Send registration data to server
-      const response = await axios.post(
-        "http://localhost:5000/api/users/register",
-        {
-          username,
-          email,
-          password,
-          kids,
-        }
-      );
+      const response = await fetch("http://localhost:5000/api/users/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, email, password, kids }),
+      });
 
-      // Handle successful registration
-      console.log("Registration successful:", response.data);
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text);
+      }
+
+      const { token, userId } = await response.json();
+      console.log("Registration successful, token:", token);
+
+      // Save token and userId to localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("userId", userId);
+      localStorage.setItem("email", email);
+
       setRegistrationSuccess(true);
 
-      // Reset form state after successful registration
-      setUsername("");
-      setEmail("");
-      setPassword("");
-      setKids([{ id: 1, name: "", age: "", selectedAvatar: null }]);
-
-      // Redirect to confirmation page
-      router.push("/confirmation");
+      // Redirect to the desired page after registration
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000); // Adjust this path as per your routes
     } catch (error) {
-      // Handle registration error
-      console.error("Error registering user:", error);
-      alert("Registration failed. Please try again later."); // Optionally handle error display or retry logic
+      console.error("Registration error:", error);
+      setError("Registration failed. Please try again.");
     }
   };
 
   const styles = {
     body: {
-      fontFamily: "Arial, sans-serif",
-      backgroundColor: "#f0f0f0",
+      fontFamily: "Comic Sans MS, cursive",
+      backgroundColor: "rgb(var(--background-start-rgb))",
+      color: "rgb(var(--foreground-rgb))",
       minHeight: "100vh",
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
+      backgroundImage: "url('/images/background.jpg')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
     },
-    formContainer: {
-      width: "80%",
-      maxWidth: "600px",
+    container: {
+      textAlign: "center",
+      backgroundColor: "#fff",
       padding: "20px",
-      backgroundColor: "#ffffff",
       borderRadius: "8px",
       boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+      width: "80%",
+      maxWidth: "600px",
     },
     formInput: {
       width: "100%",
       marginBottom: "15px",
-      padding: "10px",
+      padding: "8px",
       border: "1px solid #ccc",
       borderRadius: "4px",
       fontSize: "16px",
@@ -125,27 +133,19 @@ const RegisterPage = () => {
       width: "100%",
       marginBottom: "10px",
       padding: "8px",
-      border: "1px solid #ccc",
+      border: "1px solid #007bff",
       borderRadius: "4px",
       fontSize: "16px",
     },
-    addKidBtn: {
-      padding: "8px 16px",
-      backgroundColor: "#28a745",
-      color: "#fff",
-      border: "none",
-      borderRadius: "4px",
-      cursor: "pointer",
-      marginBottom: "10px",
-    },
     avatarContainer: {
       display: "flex",
+      justifyContent: "center",
       alignItems: "center",
       marginBottom: "10px",
     },
     avatarOption: {
-      width: "50px",
-      height: "50px",
+      width: "60px", // Increased size
+      height: "60px", // Increased size
       objectFit: "cover",
       borderRadius: "50%",
       margin: "0 5px",
@@ -154,9 +154,14 @@ const RegisterPage = () => {
       transition: "border-color 0.3s ease",
     },
     selectedAvatar: {
-      borderColor: "#007bff",
+      borderColor: "red", // Initial red border color
+      animation: "shining 1.5s infinite alternate", // Shining effect
     },
-    submitBtn: {
+    "@keyframes shining": {
+      "0%": { borderColor: "red" },
+      "100%": { borderColor: "pink" },
+    },
+    button: {
       width: "100%",
       padding: "10px",
       backgroundColor: "#007bff",
@@ -167,6 +172,15 @@ const RegisterPage = () => {
       fontSize: "16px",
       marginTop: "15px",
     },
+    addKidBtn: {
+      padding: "8px 16px",
+      backgroundColor: "#28a745",
+      color: "#fff",
+      border: "none",
+      borderRadius: "4px",
+      cursor: "pointer",
+      marginBottom: "10px",
+    },
     successMessage: {
       marginTop: "20px",
       padding: "10px",
@@ -175,12 +189,32 @@ const RegisterPage = () => {
       border: "1px solid #c3e6cb",
       borderRadius: "4px",
     },
+    error: {
+      color: "red",
+    },
+    taskImage: {
+      width: "50px",
+      height: "50px",
+      borderRadius: "50%",
+      overflow: "hidden",
+      position: "relative",
+      cursor: "pointer",
+      border: "3px solid #90EE90", // Soft green border
+    },
+    deleteButton: {
+      cursor: "pointer",
+      borderRadius: "8px", // Rounded corners
+      padding: "5px",
+      backgroundColor: "transparent",
+      border: "none",
+    },
   };
 
   return (
     <div style={styles.body}>
-      <div style={styles.formContainer}>
+      <div style={styles.container}>
         <h1>Register</h1>
+        {error && <p style={styles.error}>{error}</p>}
         <form onSubmit={handleRegister}>
           <input
             type="text"
@@ -206,9 +240,9 @@ const RegisterPage = () => {
             placeholder="Password"
             required
           />
-          {kids.map((kid) => (
+          {kids.map((kid, index) => (
             <div key={kid.id} style={styles.kidContainer}>
-              <h3>Kid {kid.id}</h3>
+              <h3>Kid {index + 1}</h3>
               <input
                 type="text"
                 value={kid.name}
@@ -220,36 +254,51 @@ const RegisterPage = () => {
                 required
               />
               <input
-                type="number"
-                value={kid.age}
+                type="date"
+                value={kid.birthDate}
                 onChange={(e) =>
-                  handleKidDetailsChange(kid.id, "age", e.target.value)
+                  handleKidDetailsChange(kid.id, "birthDate", e.target.value)
                 }
                 style={styles.kidInput}
-                placeholder="Child's Age"
                 required
               />
               <div style={styles.avatarContainer}>
-                {[...Array(numAvatars)].map((_, index) => {
-                  const avatarIndex = index + 1;
-                  const avatarUrl = `/images/avatar${avatarIndex}.png`;
+                {[...Array(numAvatars)].map((_, avatarIndex) => {
+                  const avatarNum = avatarIndex + 1;
+                  const avatarUrl = `/images/avatar${avatarNum}.png`;
                   return (
                     <img
                       key={avatarUrl}
                       src={avatarUrl}
-                      alt={`Avatar ${avatarIndex}`}
+                      alt={`Avatar ${avatarNum}`}
                       style={{
                         ...styles.avatarOption,
                         ...(kid.selectedAvatar === avatarUrl
                           ? styles.selectedAvatar
                           : {}),
                       }}
-                      onClick={() => handleSelectAvatar(kid.id, avatarIndex)}
+                      onClick={() => handleSelectAvatar(kid.id, avatarNum)}
                     />
                   );
                 })}
               </div>
-              <button type="button" onClick={() => handleRemoveKid(kid.id)}>
+              <select
+                value={kid.gender}
+                onChange={(e) =>
+                  handleKidDetailsChange(kid.id, "gender", e.target.value)
+                }
+                style={styles.kidInput}
+                required
+              >
+                <option value="">Select Gender</option>
+                <option value="boy">Boy</option>
+                <option value="girl">Girl</option>
+              </select>
+              <button
+                type="button"
+                onClick={() => handleRemoveKid(kid.id)}
+                style={styles.addKidBtn}
+              >
                 Remove Kid
               </button>
             </div>
@@ -263,7 +312,7 @@ const RegisterPage = () => {
               proceeding.
             </div>
           )}
-          <button type="submit" style={styles.submitBtn}>
+          <button type="submit" style={styles.button}>
             Register
           </button>
         </form>

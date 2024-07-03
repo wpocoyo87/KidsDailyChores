@@ -1,27 +1,35 @@
-// server.js
 import dotenv from "dotenv";
-dotenv.config();
-
 import express from "express";
+import bodyParser from "body-parser";
 import cors from "cors";
 import connectDB from "./config/dbConfig.js";
-import { router as userRoutes } from "./routes/userRoutes.js"; // Menggunakan named import
-import kidRoutes from "./routes/kidRoutes.js"; // Menggunakan default import
+import kidRoutes from "./routes/kidRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import { errorHandler, notFound } from "./utils/errorHandler.js";
+
+dotenv.config();
 
 const app = express();
-connectDB(); // Connect to MongoDB
+connectDB();
 
-// Allow requests from localhost:3000
+app.use(bodyParser.json());
+app.use(express.json());
+app.use(cors());
+
+// Configure CORS to allow requests from your frontend domain
 app.use(
   cors({
-    origin: "http://localhost:3000",
-    credentials: true, // enable set cookie with credentials
+    origin: "http://localhost:3000", // Adjust the origin as per your frontend URL
+    credentials: true,
   })
 );
 
-app.use(express.json());
+// Mount routes
 app.use("/api/users", userRoutes);
 app.use("/api/kids", kidRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

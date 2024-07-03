@@ -1,22 +1,18 @@
-// userRoutes.js
+// backend/routes/userRoutes.js
 
 import express from "express";
+const router = express.Router();
 import {
-  getUserByEmail,
-  loginUser,
   registerUser,
+  loginUser,
+  getUserById,
+  getUserByEmail,
 } from "../controllers/userController.js";
 import { protect } from "../middlewares/authMiddleware.js";
 
-const router = express.Router();
-
-// POST /api/users/register
 router.post("/register", registerUser);
-
-// POST /api/users/login
 router.post("/login", loginUser);
+router.get("/:id", protect, getUserById);
+router.get("/profile/:email", protect, getUserByEmail);
 
-// GET /api/users/profile/:email
-router.get("/profile/:email", protect, getUserByEmail); // Use protect middleware here
-
-export { router };
+export default router;

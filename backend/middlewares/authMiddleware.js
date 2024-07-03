@@ -33,16 +33,23 @@ export const protect = asyncHandler(async (req, res, next) => {
       console.log("Decoded token:", decoded); // Debug log
 
       // Fetch user from database using decoded user ID
-      req.user = await User.findById(decoded.userId).select("-password");
+      req.user = await User.findById(decoded.id).select("-password");
       console.log("Authenticated user:", req.user); // Debug log
+
+      if (!req.user) {
+        res.status(401);
+        throw new Error("Not authorized, user not found");
+      }
 
       next(); // Move to the next middleware
     } catch (error) {
-      console.error("Token verification failed:", error);
+      console.log("Error in protect middleware:", error); // Debug log
       res.status(401).json({ message: "Not authorized, token failed" });
+      return; // Stop further execution
     }
   } else {
-    console.error("Token not provided");
+    console.log("No authorization header found"); // Debug log
     res.status(401).json({ message: "Not authorized, no token" });
+    return; // Stop further execution
   }
 });

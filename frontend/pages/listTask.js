@@ -1,5 +1,3 @@
-// frontend/pages/listTask.js
-
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import DatePicker from "react-datepicker";
@@ -11,6 +9,7 @@ const ListTaskPage = () => {
   const [kid, setKid] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
+  const [noTasks, setNoTasks] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -32,7 +31,6 @@ const ListTaskPage = () => {
           return;
         }
 
-        // Fetch kid data from backend using kidRouter
         const kidResponse = await axios.get(
           `http://localhost:5000/api/kids/${selectedKid._id}`,
           {
@@ -56,17 +54,38 @@ const ListTaskPage = () => {
 
   const loadTasks = async (kidId, date) => {
     setLoading(true);
+    setNoTasks(false);
+    if (!kidId) {
+      console.error("Kid ID is missing or undefined");
+      return;
+    }
     try {
-      // Fetch tasks using taskRouter
+      const formattedDate = date.toISOString().split("T")[0];
+      console.log(`Fetching tasks for kidId: ${kidId}, date: ${formattedDate}`);
+
       const taskResponse = await axios.get(
-        `http://localhost:5000/api/tasks/${kidId}/tasks`,
+        `http://localhost:5000/api/kids/${kidId}/tasks`,
         {
-          params: { date: date.toISOString() },
+          params: { date: formattedDate },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
       );
-      setTasks(taskResponse.data);
+
+      if (taskResponse.data.length === 0) {
+        setNoTasks(true);
+        setTasks([]);
+      } else {
+        setTasks(taskResponse.data);
+      }
     } catch (error) {
-      console.error("Error fetching tasks:", error);
+      if (error.response && error.response.status === 404) {
+        setNoTasks(true);
+        setTasks([]);
+      } else {
+        console.error("Error fetching tasks:", error);
+      }
     } finally {
       setLoading(false);
     }
@@ -77,12 +96,20 @@ const ListTaskPage = () => {
     updatedTasks[index].completed = !updatedTasks[index].completed;
     setTasks(updatedTasks);
 
+    console.log("Toggling task completion:");
+    console.log("Kid:", kid);
+    console.log("Task ID:", updatedTasks[index]._id);
+
     try {
       const token = localStorage.getItem("token");
 
-      // Update task completion status using taskRouter
+      if (!kid || !kid._id) {
+        console.error("Kid ID is missing or undefined");
+        return;
+      }
+
       await axios.put(
-        `http://localhost:5000/api/tasks/${updatedTasks[index]._id}`,
+        `http://localhost:5000/api/kids/${kid._id}/tasks/${updatedTasks[index]._id}/completion`,
         { completed: updatedTasks[index].completed },
         {
           headers: {
@@ -91,9 +118,9 @@ const ListTaskPage = () => {
         }
       );
 
-      // Update stars for the kid based on completed tasks
-      const updatedKid = await updateStarsForKid(kid._id, updatedTasks);
-      setKid(updatedKid);
+      const updatedPoints = await updateStarsForKid(kid._id, updatedTasks);
+      setKid((prevKid) => ({ ...prevKid, points: updatedPoints }));
+      console.log("Updated Kid Points:", updatedPoints);
     } catch (error) {
       console.error("Error updating task:", error);
       updatedTasks[index].completed = !updatedTasks[index].completed;
@@ -103,15 +130,14 @@ const ListTaskPage = () => {
 
   const updateStarsForKid = async (kidId, updatedTasks) => {
     const completedTasks = updatedTasks.filter((task) => task.completed);
-    const totalStars = completedTasks.length; // Assuming 1 star per completed task
+    const totalStars = completedTasks.length;
 
     try {
       const token = localStorage.getItem("token");
 
-      // Update stars for the kid using kidRouter
       const updatedKidResponse = await axios.put(
-        `http://localhost:5000/api/kids/${kidId}`,
-        { stars: totalStars },
+        `http://localhost:5000/api/kids/${kidId}/points`,
+        { points: totalStars },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -119,22 +145,34 @@ const ListTaskPage = () => {
         }
       );
 
-      return updatedKidResponse.data;
+      console.log(
+        "Updated points response:",
+        updatedKidResponse.data.kid.points
+      );
+      return updatedKidResponse.data.kid.points;
     } catch (error) {
       console.error("Error updating stars for kid:", error);
-      return kid; // Return current kid state if update fails
+      return kid.points;
     }
   };
 
   const handleDeleteTask = async (index) => {
     const taskId = tasks[index]._id;
 
+    console.log("Deleting task:");
+    console.log("Kid:", kid);
+    console.log("Task ID:", taskId);
+
     try {
       const token = localStorage.getItem("token");
 
-      // Delete task using taskRouter
+      if (!kid || !kid._id) {
+        console.error("Kid ID is missing or undefined");
+        return;
+      }
+
       await axios.delete(
-        `http://localhost:5000/api/tasks/${kid._id}/tasks/${taskId}`,
+        `http://localhost:5000/api/kids/${kid._id}/tasks/${taskId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -146,9 +184,9 @@ const ListTaskPage = () => {
       updatedTasks.splice(index, 1);
       setTasks(updatedTasks);
 
-      // Update stars for the kid based on remaining completed tasks
-      const updatedKid = await updateStarsForKid(kid._id, updatedTasks);
-      setKid(updatedKid);
+      const updatedPoints = await updateStarsForKid(kid._id, updatedTasks);
+      setKid((prevKid) => ({ ...prevKid, points: updatedPoints }));
+      console.log("Updated Kid Points after deletion:", updatedPoints);
     } catch (error) {
       console.error("Error deleting task:", error);
     }
@@ -159,11 +197,17 @@ const ListTaskPage = () => {
   };
 
   const handleCompleteAllTasks = async () => {
+    if (!kid || !kid._id) {
+      console.error("Kid ID is missing or undefined");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
+
       const promises = tasks.map((task) =>
         axios.put(
-          `http://localhost:5000/api/tasks/${task._id}`,
+          `http://localhost:5000/api/kids/${kid._id}/tasks/${task._id}/completion`,
           { completed: true },
           {
             headers: {
@@ -175,10 +219,9 @@ const ListTaskPage = () => {
 
       await Promise.all(promises);
 
-      // Update stars for the kid based on completed tasks
       const updatedKidResponse = await axios.put(
-        `http://localhost:5000/api/kids/${kid._id}`,
-        { stars: tasks.length },
+        `http://localhost:5000/api/kids/${kid._id}/points`,
+        { points: tasks.length },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -186,8 +229,12 @@ const ListTaskPage = () => {
         }
       );
 
-      setKid(updatedKidResponse.data);
+      setKid((prevKid) => ({
+        ...prevKid,
+        points: updatedKidResponse.data.kid.points,
+      }));
       setTasks(tasks.map((task) => ({ ...task, completed: true })));
+      router.push(`/completedTask?kidName=${kid.name}`);
     } catch (error) {
       console.error("Error completing all tasks:", error);
     }
@@ -217,31 +264,40 @@ const ListTaskPage = () => {
           src={kid.selectedAvatar || "/images/default-avatar.png"}
           alt={`Avatar of ${kid.name}`}
           style={styles.avatar}
+          onError={(e) => {
+            e.target.src = "/images/default-avatar.png";
+          }}
         />
         <div style={styles.starsContainer}>
           <i className="fas fa-star" style={styles.starIcon}></i>
-          <p style={styles.starsText}>Star Accumulated Point: {kid.stars}</p>
+          <p style={styles.starsText}>Star Accumulated Point: {kid.points}</p>
         </div>
-        <DatePicker
-          selected={selectedDate}
-          onChange={handleDateChange}
-          dateFormat="yyyy-MM-dd"
-          style={styles.datePicker}
-        />
-        <ul style={styles.taskList}>
-          {tasks.map((task, index) => (
-            <li key={index} style={styles.taskItem}>
-              <input
-                type="checkbox"
-                checked={task.completed || false}
-                onChange={() => handleToggleComplete(index)}
-              />
-              <img src={task.image} alt="Task" style={styles.taskImage} />
-              {task.description}
-              <button onClick={() => handleDeleteTask(index)}>🗑️</button>
-            </li>
-          ))}
-        </ul>
+        <div style={styles.datePickerContainer}>
+          <DatePicker
+            selected={selectedDate}
+            onChange={handleDateChange}
+            dateFormat="yyyy-MM-dd"
+            style={styles.datePicker}
+          />
+        </div>
+        {noTasks ? (
+          <div>No tasks assigned for the selected date.</div>
+        ) : (
+          <ul style={styles.taskList}>
+            {tasks.map((task, index) => (
+              <li key={index} style={styles.taskItem}>
+                <input
+                  type="checkbox"
+                  checked={task.completed || false}
+                  onChange={() => handleToggleComplete(index)}
+                />
+                <img src={task.image} alt="Task" style={styles.taskImage} />
+                {task.description}
+                <button onClick={() => handleDeleteTask(index)}>🗑️</button>
+              </li>
+            ))}
+          </ul>
+        )}
         <button onClick={handleAddTask} style={styles.addTaskBtn}>
           Add Task
         </button>
@@ -269,18 +325,20 @@ const ListTaskPage = () => {
 const styles = {
   body: {
     fontFamily: "Comic Sans MS, cursive",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "rgb(var(--background-start-rgb))",
+    color: "rgb(var(--foreground-rgb))",
     minHeight: "100vh",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
+    backgroundImage: "url('/images/background.jpg')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
   },
   container: {
     textAlign: "center",
-    maxWidth: "600px",
-    width: "100%",
-    padding: "20px",
     backgroundColor: "#fff",
+    padding: "20px",
     borderRadius: "8px",
     boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
   },
@@ -305,12 +363,18 @@ const styles = {
     margin: 0,
     fontSize: "1.2rem",
   },
-  datePicker: {
+  datePickerContainer: {
+    display: "flex",
+    justifyContent: "center",
     marginBottom: "20px",
+  },
+  datePicker: {
     padding: "10px",
-    border: "1px solid #ccc",
-    borderRadius: "4px",
-    boxSizing: "border-box",
+    border: "1px dashed orange", // Garis putus-putus oranye
+    borderRadius: "8px", // Lebih melengkung
+    backgroundColor: "#e3f2fd", // Warna biru muda
+    color: "#0d47a1", // Warna biru
+    textAlign: "center", // Menyelaraskan teks di tengah
   },
   taskList: {
     listStyleType: "none",
@@ -337,7 +401,7 @@ const styles = {
     backgroundColor: "#007bff",
     color: "#fff",
     border: "none",
-    borderRadius: "4px",
+    borderRadius: "8px", // Lebih melengkung
     cursor: "pointer",
   },
   completeBtn: {
@@ -348,7 +412,7 @@ const styles = {
     backgroundColor: "#28a745",
     color: "#fff",
     border: "none",
-    borderRadius: "4px",
+    borderRadius: "8px", // Lebih melengkung
     cursor: "pointer",
   },
   changeKidBtn: {
@@ -356,10 +420,10 @@ const styles = {
     width: "100%",
     padding: "10px",
     marginTop: "20px",
-    backgroundColor: "#6c757d",
+    backgroundColor: "#ff9800", // Warna oranye
     color: "#fff",
     border: "none",
-    borderRadius: "4px",
+    borderRadius: "8px", // Lebih melengkung
     cursor: "pointer",
   },
 };

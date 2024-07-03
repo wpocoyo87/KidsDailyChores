@@ -24,7 +24,7 @@ const ChooseKidsPage = () => {
 
         // Fetch user data using the token and email
         const response = await axios.get(
-          `http://localhost:5000/api/users//${email}`,
+          `http://localhost:5000/api/users/profile/${email}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -33,16 +33,34 @@ const ChooseKidsPage = () => {
           }
         );
 
-        setUser(response.data);
-        setKids(response.data.kids || []); // Ensure kids array is properly set
+        const userData = response.data;
+        setUser(userData);
+
+        // Fetch points for each kid and update the kids state
+        const updatedKids = await Promise.all(
+          userData.kids.map(async (kid) => {
+            const pointsResponse = await axios.get(
+              `http://localhost:5000/api/kids/${kid._id}/points`,
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+            return { ...kid, points: pointsResponse.data.points };
+          })
+        );
+
+        setKids(updatedKids);
       } catch (error) {
         console.error("Error fetching user data:", error);
         setError(
           error.response?.data?.message ||
             "Failed to fetch user data. Please try again."
-        ); // Set error message
+        );
       } finally {
-        setLoading(false); // Update loading state
+        setLoading(false);
       }
     };
 
@@ -52,7 +70,18 @@ const ChooseKidsPage = () => {
   const handleSelection = (kid) => {
     setSelectedKid(kid);
     localStorage.setItem("selectedKid", JSON.stringify(kid));
-    router.push("/main"); // Redirect to the main page after selecting a kid
+    router.push("/singleProfile");
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("email");
+    localStorage.removeItem("selectedKid");
+    router.push("/login");
+  };
+
+  const addNewKid = () => {
+    router.push("/addKid");
   };
 
   if (loading) {
@@ -66,10 +95,10 @@ const ChooseKidsPage = () => {
   return (
     <div style={styles.body}>
       <div style={styles.formContainer}>
-        <h1 style={styles.title}>Select a Kid</h1>
+        <h1 style={styles.title}>List of Kids</h1>
         {user && (
           <div>
-            <p>Hi {user.username}, Choose your Kid!</p>
+            <p>Hi {user.username}! Please select your kid</p>
           </div>
         )}
         <div style={styles.kidsContainer}>
@@ -94,10 +123,21 @@ const ChooseKidsPage = () => {
                   style={styles.kidAvatar}
                 />
                 <span style={styles.kidName}>{kid.name}</span>
+                <div style={styles.kidDetails}>
+                  <p>Gender: {kid.gender}</p>
+                  <p>Age: {kid.age}</p>
+                  <p>Points: {kid.points || 0}</p>
+                </div>
               </div>
             ))
           )}
         </div>
+        <button onClick={addNewKid} style={styles.addButton}>
+          Add New Kid
+        </button>
+        <button onClick={handleLogout} style={styles.logoutButton}>
+          Logout
+        </button>
       </div>
     </div>
   );
@@ -112,7 +152,7 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    backgroundImage: "url(/images/background.jpg)",
+    backgroundImage: "url('/images/background.jpg')",
     backgroundSize: "cover",
     backgroundPosition: "center",
   },
@@ -122,6 +162,7 @@ const styles = {
     backgroundColor: "#ffffff",
     borderRadius: "8px",
     boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+    textAlign: "center",
   },
   title: {
     textAlign: "center",
@@ -131,6 +172,7 @@ const styles = {
     display: "flex",
     flexWrap: "wrap",
     justifyContent: "space-around",
+    textAlign: "center",
   },
   kidCard: {
     display: "flex",
@@ -151,6 +193,37 @@ const styles = {
   kidName: {
     fontWeight: "bold",
     marginTop: "5px",
+  },
+  kidDetails: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    marginTop: "5px",
+  },
+  addButton: {
+    fontFamily: "Comic Sans MS, cursive",
+    display: "block",
+    width: "100%",
+    padding: "10px",
+    marginTop: "20px",
+    backgroundColor: "#007bff",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    textDecoration: "none",
+  },
+  logoutButton: {
+    fontFamily: "Comic Sans MS, cursive",
+    display: "block",
+    width: "100%",
+    padding: "10px",
+    marginTop: "10px",
+    backgroundColor: "#DF935A",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
   },
 };
 

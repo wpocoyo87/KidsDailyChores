@@ -13,10 +13,9 @@ const MainPage = () => {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const email = localStorage.getItem("email");
+        const email = localStorage.getItem("email"); // Assuming you have stored the email somewhere
 
-        // Fetch user profile data
-        const userResponse = await axios.get(
+        const response = await axios.get(
           `http://localhost:5000/api/users/profile/${email}`,
           {
             headers: {
@@ -25,13 +24,11 @@ const MainPage = () => {
             },
           }
         );
-        setUser(userResponse.data);
-
-        // Fetch selected kid data
+        setUser(response.data);
         const selectedKidData = JSON.parse(localStorage.getItem("selectedKid"));
         setSelectedKid(selectedKidData);
 
-        // Fetch accumulated points for the selected kid
+        // Fetch the accumulated points for the selected kid
         const pointsResponse = await axios.get(
           `http://localhost:5000/api/kids/${selectedKidData._id}/points`,
           {
@@ -42,6 +39,7 @@ const MainPage = () => {
           }
         );
         setPoints(pointsResponse.data.points);
+        document.title = `Kid Profile`; // Set the document title
       } catch (error) {
         console.error("Error fetching user data:", error);
         // Handle error, e.g., redirect to login page or show error message
@@ -57,23 +55,25 @@ const MainPage = () => {
     router.push("/login");
   };
 
-  // If user or selectedKid is not loaded yet, show loading state
-  if (!user || !selectedKid) {
-    return <div style={styles.body}>Loading...</div>;
+  if (!selectedKid) {
+    return <div>Loading...</div>;
   }
 
   return (
     <div style={styles.body}>
       <div style={styles.container}>
-        <h1>Welcome, {user.username}</h1>
-        <h3>Kid Name : {selectedKid.name}</h3>
+        <h1>{selectedKid.name} Profile</h1>
+        <h3>Kid Name: {selectedKid.name}</h3>
         <div style={styles.avatarContainer}>
           <img
-            src={selectedKid.selectedAvatar || "/images/default-avatar.png"}
+            src={selectedKid.selectedAvatar || "/images/default-avatar.png"} // Use default avatar if selectedAvatar is not available
             alt={`Avatar of ${selectedKid.name}`}
             style={styles.avatar}
           />
         </div>
+        <p>Age: {selectedKid.age}</p>
+        <p>Date of Birth (D.O.B): {selectedKid.dob}</p>
+        <p>Gender: {selectedKid.gender}</p>
         <p>Star(s) Earned: {points}</p>
         <div style={styles.links}>
           <Link href="/insertTask">

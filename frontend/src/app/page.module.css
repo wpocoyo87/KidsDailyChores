@@ -1,11 +1,16 @@
 .main {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 6rem;
-  min-height: 100vh;
+  align-items: center;
+  height: 100vh; /* Membuat tinggi kontainer 100% dari viewport height */
+  background-color: #90d4ed;
   font-family: "Comic Sans MS", cursive, sans-serif;
+  background-image: url("/images/blue.gif"); /* Background image */
+  background-size: cover;
+  background-position: center;
 }
 
 .h1 {
@@ -31,7 +36,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f9f9f9;
+  background-color: #f8d6d6d7;
   padding: 10px;
   margin: 10px 0;
   border-radius: 5px;
@@ -71,7 +76,8 @@
 }
 
 .links {
-  margin-top: 20px;
+  color: #003366;
+  font-size: 1.2em;
   text-align: center;
 }
 

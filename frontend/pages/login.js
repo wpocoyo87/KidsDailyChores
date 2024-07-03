@@ -28,11 +28,12 @@ const LoginPage = () => {
         throw new Error(text);
       }
 
-      const { token } = await response.json();
+      const { token, _id: userId } = await response.json(); // Ensure the response includes the userId
       console.log("Login successful, token:", token);
 
-      // Save token and email to localStorage
+      // Save token and userId to localStorage
       localStorage.setItem("token", token);
+      localStorage.setItem("userId", userId);
       localStorage.setItem("email", email);
 
       // Redirect to the desired page after login
@@ -89,14 +90,14 @@ const styles = {
   },
   formContainer: {
     maxWidth: "400px",
-    padding: "20px",
+    padding: "19px",
     backgroundColor: "#ffffff",
     borderRadius: "8px",
     boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
   },
   formInput: {
-    width: "100%",
-    marginBottom: "15px",
+    width: "94%",
+    marginBottom: "20px",
     padding: "10px",
     border: "1px solid #ccc",
     borderRadius: "4px",

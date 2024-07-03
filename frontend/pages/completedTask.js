@@ -7,7 +7,7 @@ const CongratulationsPage = () => {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      router.push("/checkedTask");
+      router.push("/listTask");
     }, 5000); // Redirect back to the tasks page after 5 seconds
 
     return () => clearTimeout(timeout);

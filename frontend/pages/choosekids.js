@@ -77,7 +77,7 @@ const ChooseKidsPage = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("email");
     localStorage.removeItem("selectedKid");
-    router.push("/main");
+    router.push("/");
   };
 
   const addNewKid = () => {

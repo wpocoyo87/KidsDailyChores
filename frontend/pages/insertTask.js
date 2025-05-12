@@ -15,9 +15,11 @@ const InsertTask = () => {
   const [tasks, setTasks] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      setIsClient(true);
       const tokenValue = localStorage.getItem("token");
       const kidValue = localStorage.getItem("selectedKid");
       setToken(tokenValue);
@@ -36,6 +38,11 @@ const InsertTask = () => {
       }
     }
   }, []);
+
+  // GUARD: Prevent SSR/localStorage error
+  if (!isClient || !token || !selectedKid) {
+    return <div>Loading...</div>;
+  }
 
   const fetchImages = (gender) => {
     const images = [];

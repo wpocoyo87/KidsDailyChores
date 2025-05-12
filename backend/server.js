@@ -21,6 +21,9 @@ app.use(cors({
   credentials: true,
 }));
 
+// Handle preflight requests for all routes
+app.options('*', cors());
+
 // Mount routes
 app.use("/api/users", userRoutes);
 app.use("/api/kids", kidRoutes);

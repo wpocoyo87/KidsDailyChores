@@ -76,14 +76,18 @@ const ChooseKidsPage = () => {
 
   const handleSelection = (kid) => {
     setSelectedKid(kid);
-    localStorage.setItem("selectedKid", JSON.stringify(kid));
+    if (typeof window !== "undefined") {
+      localStorage.setItem("selectedKid", JSON.stringify(kid));
+    }
     router.push("/singleProfile");
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("email");
-    localStorage.removeItem("selectedKid");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      localStorage.removeItem("email");
+      localStorage.removeItem("selectedKid");
+    }
     router.push("/");
   };
 

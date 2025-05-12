@@ -15,31 +15,35 @@ const KidProfilePage = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        let tokenValue = token;
+        let emailValue = email;
+        let selectedKidValue = selectedKidData;
         if (typeof window !== "undefined") {
-          setToken(localStorage.getItem("token"));
-          setEmail(localStorage.getItem("email"));
-          setSelectedKidData(JSON.parse(localStorage.getItem("selectedKid")));
+          tokenValue = localStorage.getItem("token");
+          emailValue = localStorage.getItem("email");
+          selectedKidValue = JSON.parse(localStorage.getItem("selectedKid"));
+          setToken(tokenValue);
+          setEmail(emailValue);
+          setSelectedKidData(selectedKidValue);
         }
-
         const response = await axios.get(
-          `http://localhost:5000/api/users/profile/${email}`,
+          `http://localhost:5000/api/users/profile/${emailValue}`,
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${tokenValue}`,
             },
           }
         );
         setUser(response.data);
-        setSelectedKid(selectedKidData);
-
+        setSelectedKid(selectedKidValue);
         // Fetch the accumulated points for the selected kid
         const pointsResponse = await axios.get(
-          `http://localhost:5000/api/kids/${selectedKidData._id}/points`,
+          `http://localhost:5000/api/kids/${selectedKidValue._id}/points`,
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${tokenValue}`,
             },
           }
         );
@@ -50,13 +54,14 @@ const KidProfilePage = () => {
         // Handle error, e.g., redirect to login page or show error message
       }
     };
-
     fetchUserData();
   }, []); // Fetch user data only once when the component mounts
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("selectedKid");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      localStorage.removeItem("selectedKid");
+    }
     router.push("/");
   };
 

@@ -32,9 +32,11 @@ const LoginPage = () => {
       console.log("Login successful, token:", token);
 
       // Save token and userId to localStorage
-      localStorage.setItem("token", token);
-      localStorage.setItem("userId", userId);
-      localStorage.setItem("email", email);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("token", token);
+        localStorage.setItem("userId", userId);
+        localStorage.setItem("email", email);
+      }
 
       // Redirect to the desired page after login
       router.push("/choosekids"); // Adjust this path as per your routes

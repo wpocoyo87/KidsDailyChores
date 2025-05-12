@@ -25,43 +25,41 @@ const ListTaskPage = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const selectedKidStr = localStorage.getItem("selectedKid");
-        const token = localStorage.getItem("token");
-
-        if (!selectedKidStr || !token) {
+        let selectedKidStrValue = selectedKidStr;
+        let tokenValue = token;
+        if (typeof window !== "undefined") {
+          selectedKidStrValue = localStorage.getItem("selectedKid");
+          tokenValue = localStorage.getItem("token");
+        }
+        if (!selectedKidStrValue || !tokenValue) {
           console.error("Selected kid or token not found in localStorage");
           return;
         }
-
-        const selectedKid = JSON.parse(selectedKidStr);
-
+        const selectedKid = JSON.parse(selectedKidStrValue);
         if (!selectedKid._id) {
           console.error("Selected kid id is missing in localStorage");
           return;
         }
-
         const kidResponse = await axios.get(
           `http://localhost:5000/api/kids/${selectedKid._id}`,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${tokenValue}`,
             },
           }
         );
-
         setKid(kidResponse.data);
-        await loadTasks(selectedKid._id, selectedDate);
+        await loadTasks(selectedKid._id, selectedDate, tokenValue);
       } catch (error) {
         console.error("Error fetching kid data:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
-  }, [selectedDate]);
+  }, [selectedDate, selectedKidStr, token]);
 
-  const loadTasks = async (kidId, date) => {
+  const loadTasks = async (kidId, date, tokenValue = token) => {
     setLoading(true);
     setNoTasks(false);
     if (!kidId) {
@@ -70,18 +68,15 @@ const ListTaskPage = () => {
     }
     try {
       const formattedDate = date.toISOString().split("T")[0];
-      console.log(`Fetching tasks for kidId: ${kidId}, date: ${formattedDate}`);
-
       const taskResponse = await axios.get(
         `http://localhost:5000/api/kids/${kidId}/tasks`,
         {
           params: { date: formattedDate },
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${tokenValue}`,
           },
         }
       );
-
       if (taskResponse.data.length === 0) {
         setNoTasks(true);
         setTasks([]);
@@ -104,32 +99,26 @@ const ListTaskPage = () => {
     const updatedTasks = [...tasks];
     updatedTasks[index].completed = !updatedTasks[index].completed;
     setTasks(updatedTasks);
-
-    console.log("Toggling task completion:");
-    console.log("Kid:", kid);
-    console.log("Task ID:", updatedTasks[index]._id);
-
     try {
-      const token = localStorage.getItem("token");
-
+      let tokenValue = token;
+      if (typeof window !== "undefined") {
+        tokenValue = localStorage.getItem("token");
+      }
       if (!kid || !kid._id) {
         console.error("Kid ID is missing or undefined");
         return;
       }
-
       await axios.put(
         `http://localhost:5000/api/kids/${kid._id}/tasks/${updatedTasks[index]._id}/completion`,
         { completed: updatedTasks[index].completed },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${tokenValue}`,
           },
         }
       );
-
-      const updatedPoints = await updateStarsForKid(kid._id, updatedTasks);
+      const updatedPoints = await updateStarsForKid(kid._id, updatedTasks, tokenValue);
       setKid((prevKid) => ({ ...prevKid, points: updatedPoints }));
-      console.log("Updated Kid Points:", updatedPoints);
     } catch (error) {
       console.error("Error updating task:", error);
       updatedTasks[index].completed = !updatedTasks[index].completed;
@@ -137,26 +126,21 @@ const ListTaskPage = () => {
     }
   };
 
-  const updateStarsForKid = async (kidId, updatedTasks) => {
+  const updateStarsForKid = async (kidId, updatedTasks, tokenValue = token) => {
     const completedTasks = updatedTasks.filter((task) => task.completed);
     const totalStars = completedTasks.length;
-
     try {
-      const token = localStorage.getItem("token");
-
+      if (typeof window !== "undefined") {
+        tokenValue = localStorage.getItem("token");
+      }
       const updatedKidResponse = await axios.put(
         `http://localhost:5000/api/kids/${kidId}/points`,
         { points: totalStars },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${tokenValue}`,
           },
         }
-      );
-
-      console.log(
-        "Updated points response:",
-        updatedKidResponse.data.kid.points
       );
       return updatedKidResponse.data.kid.points;
     } catch (error) {
@@ -167,35 +151,28 @@ const ListTaskPage = () => {
 
   const handleDeleteTask = async (index) => {
     const taskId = tasks[index]._id;
-
-    console.log("Deleting task:");
-    console.log("Kid:", kid);
-    console.log("Task ID:", taskId);
-
     try {
-      const token = localStorage.getItem("token");
-
+      let tokenValue = token;
+      if (typeof window !== "undefined") {
+        tokenValue = localStorage.getItem("token");
+      }
       if (!kid || !kid._id) {
         console.error("Kid ID is missing or undefined");
         return;
       }
-
       await axios.delete(
         `http://localhost:5000/api/kids/${kid._id}/tasks/${taskId}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${tokenValue}`,
           },
         }
       );
-
       const updatedTasks = [...tasks];
       updatedTasks.splice(index, 1);
       setTasks(updatedTasks);
-
-      const updatedPoints = await updateStarsForKid(kid._id, updatedTasks);
+      const updatedPoints = await updateStarsForKid(kid._id, updatedTasks, tokenValue);
       setKid((prevKid) => ({ ...prevKid, points: updatedPoints }));
-      console.log("Updated Kid Points after deletion:", updatedPoints);
     } catch (error) {
       console.error("Error deleting task:", error);
     }

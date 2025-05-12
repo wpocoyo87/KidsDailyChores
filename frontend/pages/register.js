@@ -77,9 +77,11 @@ const RegisterPage = () => {
       console.log("Registration successful, token:", token);
 
       // Save token and userId to localStorage
-      localStorage.setItem("token", token);
-      localStorage.setItem("userId", userId);
-      localStorage.setItem("email", email);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("token", token);
+        localStorage.setItem("userId", userId);
+        localStorage.setItem("email", email);
+      }
 
       setRegistrationSuccess(true);
 

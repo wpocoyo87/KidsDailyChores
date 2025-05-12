@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
 const AddKidPage = () => {
@@ -8,10 +8,16 @@ const AddKidPage = () => {
   const [selectedAvatar, setSelectedAvatar] = useState("");
   const [gender, setGender] = useState("");
   const [error, setError] = useState(null);
+  const [token, setToken] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setToken(localStorage.getItem("token"));
+    }
+  }, []);
 
   const handleAddKid = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
 
     if (!name || !birthDate || !gender || !selectedAvatar) {
       alert("Please fill out all fields");

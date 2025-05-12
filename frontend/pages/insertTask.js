@@ -6,7 +6,8 @@ import "react-datepicker/dist/react-datepicker.css";
 
 const InsertTask = () => {
   const router = useRouter();
-  const token = localStorage.getItem("token");
+  const [token, setToken] = useState(null);
+  const [storedSelectedKid, setStoredSelectedKid] = useState(null);
   const [description, setDescription] = useState("");
   const [image, setImage] = useState("");
   const [tasks, setTasks] = useState([]);
@@ -17,7 +18,8 @@ const InsertTask = () => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedSelectedKid = localStorage.getItem("selectedKid");
+      setToken(localStorage.getItem("token"));
+      setStoredSelectedKid(localStorage.getItem("selectedKid"));
       if (storedSelectedKid) {
         try {
           const parsedSelectedKid = JSON.parse(storedSelectedKid);
@@ -71,7 +73,6 @@ const InsertTask = () => {
         return;
       }
 
-      const token = localStorage.getItem("token");
       if (!token) {
         console.error("Token not found in localStorage");
         return;

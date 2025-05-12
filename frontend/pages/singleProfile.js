@@ -8,12 +8,18 @@ const KidProfilePage = () => {
   const [selectedKid, setSelectedKid] = useState(null);
   const [user, setUser] = useState(null);
   const [points, setPoints] = useState(0);
+  const [token, setToken] = useState(null);
+  const [email, setEmail] = useState(null);
+  const [selectedKidData, setSelectedKidData] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const email = localStorage.getItem("email"); // Assuming you have stored the email somewhere
+        if (typeof window !== "undefined") {
+          setToken(localStorage.getItem("token"));
+          setEmail(localStorage.getItem("email"));
+          setSelectedKidData(JSON.parse(localStorage.getItem("selectedKid")));
+        }
 
         const response = await axios.get(
           `http://localhost:5000/api/users/profile/${email}`,
@@ -25,7 +31,6 @@ const KidProfilePage = () => {
           }
         );
         setUser(response.data);
-        const selectedKidData = JSON.parse(localStorage.getItem("selectedKid"));
         setSelectedKid(selectedKidData);
 
         // Fetch the accumulated points for the selected kid

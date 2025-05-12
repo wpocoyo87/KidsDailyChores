@@ -9,12 +9,19 @@ const ChooseKidsPage = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [token, setToken] = useState(null);
+  const [email, setEmail] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setToken(localStorage.getItem("token"));
+      setEmail(localStorage.getItem("email"));
+    }
+  }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const email = localStorage.getItem("email");
         console.log("Token:", token);
         console.log("Email:", email);
 

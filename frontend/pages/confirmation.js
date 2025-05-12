@@ -1,16 +1,22 @@
 // pages/confirmation.js
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
 const ConfirmationPage = () => {
   const router = useRouter();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setUser(JSON.parse(localStorage.getItem("user")));
+    }
+  }, []);
 
   useEffect(() => {
     const confirmUser = async () => {
       try {
         // Retrieve registrationId from localStorage or router query params
-        const user = JSON.parse(localStorage.getItem("user"));
         const registrationId = user?.registrationId;
 
         // Simulate successful confirmation

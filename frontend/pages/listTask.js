@@ -11,6 +11,15 @@ const ListTaskPage = () => {
   const [loading, setLoading] = useState(true);
   const [noTasks, setNoTasks] = useState(false);
   const router = useRouter();
+  const [token, setToken] = useState(null);
+  const [selectedKidStr, setSelectedKidStr] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setToken(localStorage.getItem("token"));
+      setSelectedKidStr(localStorage.getItem("selectedKid"));
+    }
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {

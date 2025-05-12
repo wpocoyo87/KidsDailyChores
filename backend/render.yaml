@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: kids-daily-chores-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: NODE_ENV
+        value: production 

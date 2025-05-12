@@ -86,7 +86,7 @@ const KidProfilePage = () => {
         <p>Gender: {selectedKid.gender}</p>
         <p>Star(s) Earned: {points}</p>
         <div style={styles.links}>
-          <Link href="/insertTask">
+          <Link href="/insert-task">
             <button style={styles.button}>Insert Task</button>
           </Link>
           <Link href="/listTask">

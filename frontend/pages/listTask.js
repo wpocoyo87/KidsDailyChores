@@ -179,7 +179,7 @@ const ListTaskPage = () => {
   };
 
   const handleAddTask = () => {
-    router.push("/insertTask");
+    router.push("/insert-task");
   };
 
   const handleCompleteAllTasks = async () => {

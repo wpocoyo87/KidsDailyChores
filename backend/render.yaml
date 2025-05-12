@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: kids-daily-chores-backend
+    name: kidsdailychores
     env: node
     buildCommand: npm install
     startCommand: npm start

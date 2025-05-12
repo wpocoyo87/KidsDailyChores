@@ -8,21 +8,23 @@ const InsertTask = () => {
   const router = useRouter();
   const [token, setToken] = useState(null);
   const [storedSelectedKid, setStoredSelectedKid] = useState(null);
+  const [selectedKid, setSelectedKid] = useState(null);
+  const [gender, setGender] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState("");
   const [tasks, setTasks] = useState([]);
-  const [selectedKid, setSelectedKid] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [gender, setGender] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setToken(localStorage.getItem("token"));
-      setStoredSelectedKid(localStorage.getItem("selectedKid"));
-      if (storedSelectedKid) {
+      const tokenValue = localStorage.getItem("token");
+      const kidValue = localStorage.getItem("selectedKid");
+      setToken(tokenValue);
+      setStoredSelectedKid(kidValue);
+      if (kidValue) {
         try {
-          const parsedSelectedKid = JSON.parse(storedSelectedKid);
+          const parsedSelectedKid = JSON.parse(kidValue);
           setSelectedKid(parsedSelectedKid);
           const genderValue =
             parsedSelectedKid.gender === "female" ? "Girl" : "Boy";
@@ -67,23 +69,19 @@ const InsertTask = () => {
         console.error("No kid selected to save tasks for");
         return;
       }
-
       if (!tasks.length) {
         console.error("No tasks to save");
         return;
       }
-
       if (!token) {
         console.error("Token not found in localStorage");
         return;
       }
-
       const tasksToSave = tasks.map((task) => ({
         description: task.description,
         image: task.image,
         date: task.date,
       }));
-
       const response = await axios.post(
         `http://localhost:5000/api/kids/${selectedKid._id}/tasks`,
         { tasks: tasksToSave },
@@ -93,7 +91,6 @@ const InsertTask = () => {
           },
         }
       );
-
       console.log("Tasks saved successfully:", response.data);
       router.push("/listTask");
     } catch (error) {

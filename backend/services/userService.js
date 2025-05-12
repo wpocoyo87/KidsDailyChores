@@ -1,4 +1,4 @@
-import User from "../models/userModel.js";
+import User from "../models/UserModel.js";
 import Kid from "../models/KidModel.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../config/authConfig.js";

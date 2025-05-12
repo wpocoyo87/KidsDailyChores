@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import Kid from "../models/KidModel.js";
-import User from "../models/userModel.js";
+import User from "../models/UserModel.js";
 
 export const createKidService = async (userId, kidData) => {
   const user = await User.findById(userId);

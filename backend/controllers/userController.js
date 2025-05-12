@@ -5,7 +5,7 @@ import {
   loginUserService,
   getUserByEmailService,
 } from "../services/userService.js";
-import User from "../models/userModel.js";
+import User from "../models/UserModel.js";
 
 // Controller to register a new user
 const registerUser = asyncHandler(async (req, res) => {

@@ -16,8 +16,8 @@ app.use(express.json());
 // Configure CORS
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://kids-daily-chores.vercel.app'] // Ganti dengan domain Vercel anda
-    : ['http://localhost:3000'],
+    ? 'https://kids-daily-chores.vercel.app'
+    : 'http://localhost:3000',
   credentials: true,
 }));
 
@@ -27,6 +27,8 @@ app.use("/api/kids", kidRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
+
+console.log('NODE_ENV:', process.env.NODE_ENV);
 
 app.listen(config.PORT, () => {
   console.log(`Server running on port ${config.PORT}`);

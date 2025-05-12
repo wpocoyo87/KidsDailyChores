@@ -33,6 +33,8 @@ app.use(errorHandler);
 
 console.log('NODE_ENV:', process.env.NODE_ENV);
 
+app.get('/test-root', (req, res) => res.json({ msg: "Root OK" }));
+
 app.listen(config.PORT, () => {
   console.log(`Server running on port ${config.PORT}`);
 });

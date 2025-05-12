@@ -1,0 +1,31 @@
+meta {
+  name: Register
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://kids-daily-chores-backend.onrender.com/api/register
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+     {
+       "username": "testuser",
+       "email": "testuser@example.com",
+       "password": "testpassword",
+       "kids": [
+         {
+           "name": "Ali",
+           "birthDate": "2015-01-01",
+           "selectedAvatar": "/images/avatar1.png",
+           "gender": "boy"
+         }
+       ]
+     }
+}

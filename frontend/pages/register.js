@@ -15,6 +15,8 @@ const RegisterPage = () => {
   // Assume we have 8 avatars
   const numAvatars = 8;
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
   const handleAddKid = () => {
     setKids([
       ...kids,
@@ -60,7 +62,7 @@ const RegisterPage = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/users/register", {
+      const response = await fetch(`${apiUrl}/users/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

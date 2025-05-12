@@ -11,6 +11,7 @@ const ChooseKidsPage = () => {
   const [error, setError] = useState(null);
   const [token, setToken] = useState(null);
   const [email, setEmail] = useState(null);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -31,7 +32,7 @@ const ChooseKidsPage = () => {
 
         // Fetch user data using the token and email
         const response = await axios.get(
-          `http://localhost:5000/api/users/profile/${email}`,
+          `${apiUrl}/users/profile/${email}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -47,7 +48,7 @@ const ChooseKidsPage = () => {
         const updatedKids = await Promise.all(
           userData.kids.map(async (kid) => {
             const pointsResponse = await axios.get(
-              `http://localhost:5000/api/kids/${kid._id}/points`,
+              `${apiUrl}/kids/${kid._id}/points`,
               {
                 headers: {
                   "Content-Type": "application/json",

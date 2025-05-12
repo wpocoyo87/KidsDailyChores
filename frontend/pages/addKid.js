@@ -10,6 +10,8 @@ const AddKidPage = () => {
   const [error, setError] = useState(null);
   const [token, setToken] = useState(null);
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       setToken(localStorage.getItem("token"));
@@ -27,7 +29,7 @@ const AddKidPage = () => {
     const age = new Date().getFullYear() - new Date(birthDate).getFullYear();
 
     try {
-      const response = await fetch("http://localhost:5000/api/kids/add", {
+      const response = await fetch(`${apiUrl}/kids/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

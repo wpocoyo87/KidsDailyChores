@@ -16,6 +16,7 @@ const InsertTask = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isClient, setIsClient] = useState(false);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -89,7 +90,7 @@ const InsertTask = () => {
         date: task.date,
       }));
       const response = await axios.post(
-        `http://localhost:5000/api/kids/${selectedKid._id}/tasks`,
+        `${apiUrl}/kids/${selectedKid._id}/tasks`,
         { tasks: tasksToSave },
         {
           headers: {

@@ -12,6 +12,8 @@ const KidProfilePage = () => {
   const [email, setEmail] = useState(null);
   const [selectedKidData, setSelectedKidData] = useState(null);
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -27,7 +29,7 @@ const KidProfilePage = () => {
           setSelectedKidData(selectedKidValue);
         }
         const response = await axios.get(
-          `http://localhost:5000/api/users/profile/${emailValue}`,
+          `${apiUrl}/users/profile/${emailValue}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -39,7 +41,7 @@ const KidProfilePage = () => {
         setSelectedKid(selectedKidValue);
         // Fetch the accumulated points for the selected kid
         const pointsResponse = await axios.get(
-          `http://localhost:5000/api/kids/${selectedKidValue._id}/points`,
+          `${apiUrl}/kids/${selectedKidValue._id}/points`,
           {
             headers: {
               "Content-Type": "application/json",

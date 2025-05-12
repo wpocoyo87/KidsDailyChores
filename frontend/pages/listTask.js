@@ -13,6 +13,7 @@ const ListTaskPage = () => {
   const router = useRouter();
   const [token, setToken] = useState(null);
   const [selectedKidStr, setSelectedKidStr] = useState(null);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -41,7 +42,7 @@ const ListTaskPage = () => {
           return;
         }
         const kidResponse = await axios.get(
-          `http://localhost:5000/api/kids/${selectedKid._id}`,
+          `${apiUrl}/kids/${selectedKid._id}`,
           {
             headers: {
               Authorization: `Bearer ${tokenValue}`,
@@ -69,7 +70,7 @@ const ListTaskPage = () => {
     try {
       const formattedDate = date.toISOString().split("T")[0];
       const taskResponse = await axios.get(
-        `http://localhost:5000/api/kids/${kidId}/tasks`,
+        `${apiUrl}/kids/${kidId}/tasks`,
         {
           params: { date: formattedDate },
           headers: {
@@ -109,7 +110,7 @@ const ListTaskPage = () => {
         return;
       }
       await axios.put(
-        `http://localhost:5000/api/kids/${kid._id}/tasks/${updatedTasks[index]._id}/completion`,
+        `${apiUrl}/kids/${kid._id}/tasks/${updatedTasks[index]._id}/completion`,
         { completed: updatedTasks[index].completed },
         {
           headers: {
@@ -134,7 +135,7 @@ const ListTaskPage = () => {
         tokenValue = localStorage.getItem("token");
       }
       const updatedKidResponse = await axios.put(
-        `http://localhost:5000/api/kids/${kidId}/points`,
+        `${apiUrl}/kids/${kidId}/points`,
         { points: totalStars },
         {
           headers: {
@@ -161,7 +162,7 @@ const ListTaskPage = () => {
         return;
       }
       await axios.delete(
-        `http://localhost:5000/api/kids/${kid._id}/tasks/${taskId}`,
+        `${apiUrl}/kids/${kid._id}/tasks/${taskId}`,
         {
           headers: {
             Authorization: `Bearer ${tokenValue}`,
@@ -193,7 +194,7 @@ const ListTaskPage = () => {
 
       const promises = tasks.map((task) =>
         axios.put(
-          `http://localhost:5000/api/kids/${kid._id}/tasks/${task._id}/completion`,
+          `${apiUrl}/kids/${kid._id}/tasks/${task._id}/completion`,
           { completed: true },
           {
             headers: {
@@ -206,7 +207,7 @@ const ListTaskPage = () => {
       await Promise.all(promises);
 
       const updatedKidResponse = await axios.put(
-        `http://localhost:5000/api/kids/${kid._id}/points`,
+        `${apiUrl}/kids/${kid._id}/points`,
         { points: tasks.length },
         {
           headers: {

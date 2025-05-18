@@ -19,37 +19,46 @@ const calculateAge = (birthDate) => {
 };
 
 // Service to register a new user
-const registerUserService = async (username, email, password, kids) => {
-  const normalizedEmail = email.toLowerCase();
-  const hashedPassword = await bcrypt.hash(password, 10);
-  console.log("Hashed password during registration:", hashedPassword);
+const registerUserService = async (userData) => {
+  try {
+    // Pastikan userData.email wujud sebelum guna toLowerCase()
+    if (!userData.email) {
+      throw new Error('Email is required');
+    }
+    
+    const email = userData.email.toLowerCase();
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    console.log("Hashed password during registration:", hashedPassword);
 
-  const newUser = new User({
-    username: username,
-    email: normalizedEmail,
-    password: password, // Jangan hash password di sini
-    kids: [], // Pastikan kids dimulakan sebagai array kosong
-  });
-
-  await newUser.save();
-
-  for (const kidData of kids) {
-    const age = calculateAge(kidData.birthDate);
-    const kid = new Kid({
-      name: kidData.name,
-      birthDate: kidData.birthDate,
-      gender: kidData.gender,
-      selectedAvatar: kidData.selectedAvatar,
-      age: age,
-      parent: newUser._id,
+    const newUser = new User({
+      username: userData.username,
+      email: email,
+      password: userData.password, // Jangan hash password di sini
+      kids: [], // Pastikan kids dimulakan sebagai array kosong
     });
 
-    const savedKid = await kid.save();
-    newUser.kids.push(savedKid);
-  }
+    await newUser.save();
 
-  await newUser.save();
-  return newUser;
+    for (const kidData of userData.kids) {
+      const age = calculateAge(kidData.birthDate);
+      const kid = new Kid({
+        name: kidData.name,
+        birthDate: kidData.birthDate,
+        gender: kidData.gender,
+        selectedAvatar: kidData.selectedAvatar,
+        age: age,
+        parent: newUser._id,
+      });
+
+      const savedKid = await kid.save();
+      newUser.kids.push(savedKid);
+    }
+
+    await newUser.save();
+    return newUser;
+  } catch (error) {
+    throw error;
+  }
 };
 
 // Service to login a user

@@ -28,7 +28,7 @@ const registerUser = asyncHandler(async (req, res) => {
         .json({ message: "User with this username already exists" });
     }
 
-    const newUser = await registerUserService(username, email, password, kids);
+    const newUser = await registerUserService({username, email, password, kids});
     res.status(201).json({
       _id: newUser._id,
       username: newUser.username,

@@ -30,13 +30,15 @@ const LoginPage = () => {
         throw new Error(text);
       }
 
-      const { token, _id: userId } = await response.json(); // Ensure the response includes the userId
-      console.log("Login successful, token:", token);
+      const data = await response.json();
+      const { token, _id: userId, kids } = data;
+      console.log("Login successful, token:", token, "kids:", kids);
 
-      // Save token and userId to localStorage
+      // Save token and user data to localStorage
       if (typeof window !== 'undefined') {
         localStorage.setItem("token", token);
         localStorage.setItem("userId", userId);
+        localStorage.setItem("kids", JSON.stringify(kids)); // Store kids data
         localStorage.setItem("email", email);
       }
 

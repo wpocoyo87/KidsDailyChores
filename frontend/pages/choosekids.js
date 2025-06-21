@@ -21,59 +21,14 @@ const ChooseKidsPage = () => {
   }, []);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        console.log("Token:", token);
-        console.log("Email:", email);
-
-        if (!token || !email) {
-          throw new Error("No token or email found. Please log in again.");
-        }
-
-        // Fetch user data using the token and email
-        const response = await axios.get(
-          `${apiUrl}/users/profile/${email}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const userData = response.data;
-        setUser(userData);
-
-        // Fetch points for each kid and update the kids state
-        const updatedKids = await Promise.all(
-          userData.kids.map(async (kid) => {
-            const pointsResponse = await axios.get(
-              `${apiUrl}/kids/${kid._id}/points`,
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-            return { ...kid, points: pointsResponse.data.points };
-          })
-        );
-
-        setKids(updatedKids);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setError(
-          error.response?.data?.message ||
-            "Failed to fetch user data. Please try again."
-        );
-      } finally {
-        setLoading(false);
+    if (typeof window !== "undefined") {
+      const storedKids = localStorage.getItem("kids");
+      if (storedKids) {
+        setKids(JSON.parse(storedKids));
       }
-    };
-
-    fetchUserData();
-  }, [router]);
+      setLoading(false); // Stop loading once data is retrieved or not found
+    }
+  }, []);
 
   const handleSelection = (kid) => {
     setSelectedKid(kid);
@@ -88,6 +43,7 @@ const ChooseKidsPage = () => {
       localStorage.removeItem("token");
       localStorage.removeItem("email");
       localStorage.removeItem("selectedKid");
+      localStorage.removeItem("kids"); // Also remove kids data on logout
     }
     router.push("/");
   };

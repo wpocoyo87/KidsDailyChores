@@ -27,13 +27,11 @@ const registerUserService = async (userData) => {
     }
     
     const email = userData.email.toLowerCase();
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
-    console.log("Hashed password during registration:", hashedPassword);
 
     const newUser = new User({
       username: userData.username,
       email: email,
-      password: userData.password, // Jangan hash password di sini
+      password: userData.password,
       kids: [], // Pastikan kids dimulakan sebagai array kosong
     });
 
@@ -69,12 +67,7 @@ const loginUserService = async (email, password) => {
     throw new Error("User not found");
   }
 
-  // Log the stored password and the provided password for debugging
-  console.log("Stored password:", user.password);
-  console.log("Provided password:", password);
-
   const isMatch = await user.matchPassword(password);
-  console.log(`Comparing passwords: ${password} ${user.password} ${isMatch}`);
   if (!isMatch) {
     throw new Error("Invalid credentials");
   }

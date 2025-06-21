@@ -4,6 +4,7 @@ import {
   registerUserService,
   loginUserService,
   getUserByEmailService,
+  getKidsByUserIdService,
 } from "../services/userService.js";
 import User from "../models/UserModel.js";
 
@@ -93,4 +94,15 @@ const getUserById = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerUser, loginUser, getUserByEmail, getUserById };
+// Controller to get kids by user ID
+const getKidsByUserId = asyncHandler(async (req, res) => {
+  try {
+    const kids = await getKidsByUserIdService(req.params.userId);
+    res.json(kids);
+  } catch (error) {
+    console.error("Error fetching kids by user ID:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+export { registerUser, loginUser, getUserByEmail, getUserById, getKidsByUserId };

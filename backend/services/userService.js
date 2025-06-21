@@ -49,7 +49,7 @@ const registerUserService = async (userData) => {
       });
 
       const savedKid = await kid.save();
-      newUser.kids.push(savedKid);
+      newUser.kids.push(savedKid._id);
     }
 
     await newUser.save();
@@ -62,7 +62,7 @@ const registerUserService = async (userData) => {
 // Service to login a user
 const loginUserService = async (email, password) => {
   const normalizedEmail = email.toLowerCase();
-  const user = await User.findOne({ email: normalizedEmail });
+  const user = await User.findOne({ email: normalizedEmail }).populate('kids');
   if (!user) {
     throw new Error("User not found");
   }
@@ -112,9 +112,19 @@ const addKidService = async (userId, kidData) => {
   return savedKid;
 };
 
+// Service to get kids by user ID
+const getKidsByUserIdService = async (userId) => {
+  const user = await User.findById(userId).populate('kids');
+  if (!user) {
+    throw new Error('User not found');
+  }
+  return user.kids;
+};
+
 export {
   registerUserService,
   loginUserService,
   getUserByEmailService,
   addKidService,
+  getKidsByUserIdService,
 };

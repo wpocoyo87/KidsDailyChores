@@ -6,6 +6,12 @@ import { config } from "./config/config.js";
 import kidRoutes from "./routes/kidRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import { errorHandler, notFound } from "./utils/errorHandler.js";
+import dotenv from "dotenv";
+
+// Load env vars
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config();
+}
 
 const app = express();
 connectDB();

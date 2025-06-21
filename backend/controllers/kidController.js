@@ -192,13 +192,20 @@ export const updateTaskCompletion = asyncHandler(async (req, res) => {
 });
 
 export const addKid = asyncHandler(async (req, res) => {
+  const { name, gender, birthDate, selectedAvatar } = req.body;
   const userId = req.user._id;
-  const kidData = req.body;
-  console.log(`User ID received: ${userId}`);
-  console.log(`Kid data received: ${JSON.stringify(kidData)}`);
+
+  if (!name || !gender || !birthDate || !selectedAvatar) {
+    return res.status(400).json({ message: "Please fill all fields" });
+  }
 
   try {
-    const newKid = await addKidService(userId, kidData);
+    const newKid = await addKidService(userId, {
+      name,
+      birthDate,
+      selectedAvatar,
+      gender,
+    });
     res.status(201).json(newKid);
   } catch (error) {
     console.error("Error adding kid:", error);

@@ -31,7 +31,7 @@ const LoginPage = () => {
       setCurrentCharacter((prev) => (prev + 1) % characters.length)
     }, 2000)
     return () => clearInterval(interval)
-  }, [])
+  }, [characters.length]) // Fixed dependency
 
   // Welcome message rotation
   useEffect(() => {
@@ -40,7 +40,7 @@ const LoginPage = () => {
       setWelcomeMessage(randomMessage)
     }, 3000)
     return () => clearInterval(interval)
-  }, [])
+  }, [welcomeMessages]) // Fixed dependency
 
   // Sound effects
   const playSound = (type) => {
@@ -124,7 +124,7 @@ const LoginPage = () => {
       router.push("/choosekids")
     } catch (error) {
       console.error("Login error:", error)
-      setError("🔐 Hmm, that doesn't look right! Check your email and password! 🔐")
+      setError("🔐 Hmm, that doesn&apos;t look right! Check your email and password! 🔐") // Fixed escaped quote
       playSound("error")
     } finally {
       setIsLoading(false)
@@ -398,7 +398,7 @@ const LoginPage = () => {
           <div style={styles.inputGroup}>
             <label style={styles.label}>
               <span style={styles.inputIcon}>📧</span>
-              Parent's Email:
+              Parent&apos;s Email: {/* Fixed escaped quote */}
             </label>
             <input
               type="email"
@@ -462,7 +462,7 @@ const LoginPage = () => {
 
         {/* Fun facts */}
         <div style={{ textAlign: "center", marginTop: "20px", color: "#718096", fontSize: "0.9rem" }}>
-          <p>🌟 Fun Fact: You're about to create amazing memories! 🌟</p>
+          <p>🌟 Fun Fact: You&apos;re about to create amazing memories! 🌟</p> {/* Fixed escaped quote */}
         </div>
       </div>
     </div>

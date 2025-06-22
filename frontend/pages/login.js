@@ -133,7 +133,7 @@ const LoginPage = () => {
 
   const styles = {
     body: {
-      fontFamily: "Comic Sans MS, cursive",
+      fontFamily: "Comic Sans MS",
       background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
       minHeight: "100vh",
       display: "flex",
@@ -385,7 +385,7 @@ const LoginPage = () => {
         {/* Header */}
         <div style={styles.header}>
           <span style={styles.characterDisplay}>{characters[currentCharacter]}</span>
-          <h1 style={styles.title}>🎮 Kids Task Login 🎮</h1>
+          <h1 style={styles.title}>🎮 Login 🎮</h1>
           <p style={styles.subtitle}>Welcome back, Super Star!</p>
           <p style={styles.welcomeMessage}>{welcomeMessage || "Ready for your next adventure? 🚀"}</p>
         </div>

@@ -225,7 +225,7 @@ const RegisterPage = () => {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             style={styles.formInput}
-            placeholder="Username"
+            placeholder="Parent's Name"
             required
           />
           <input
@@ -233,7 +233,7 @@ const RegisterPage = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             style={styles.formInput}
-            placeholder="Email"
+            placeholder="Magical Email"
             required
           />
           <input
@@ -241,7 +241,7 @@ const RegisterPage = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             style={styles.formInput}
-            placeholder="Password"
+            placeholder="Super Secret Password"
             required
           />
           {kids.map((kid, index) => (
@@ -254,7 +254,7 @@ const RegisterPage = () => {
                   handleKidDetailsChange(kid.id, "name", e.target.value)
                 }
                 style={styles.kidInput}
-                placeholder="Child's Name"
+                placeholder="Superstar Name"
                 required
               />
               <input

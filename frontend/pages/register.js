@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
 const RegisterPage = () => {
@@ -11,13 +11,87 @@ const RegisterPage = () => {
   ]);
   const [error, setError] = useState(null);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [currentCharacter, setCurrentCharacter] = useState(0);
+  const [welcomeMessage, setWelcomeMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Assume we have 8 avatars
   const numAvatars = 8;
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
+  // Fun characters for kids
+  const characters = ["🌟", "🎨", "👶", "🧒", "👦", "👧", "🎯", "🏆"];
+  const welcomeMessages = [
+    "Let's create your super family! 👨‍👩‍👧‍👦",
+    "Ready to start the adventure? 🚀",
+    "Welcome to the family zone! 🏠",
+    "Time to meet your superheroes! 🦸‍♂️🦸‍♀️",
+    "Let's build something amazing! ✨",
+  ];
+
+  // Character rotation effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentCharacter((prev) => (prev + 1) % characters.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [characters.length]);
+
+  // Welcome message rotation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const randomMessage = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+      setWelcomeMessage(randomMessage);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [welcomeMessages]);
+
+  // Sound effects
+  const playSound = (type) => {
+    try {
+      let frequency;
+      switch (type) {
+        case "click":
+          frequency = 800;
+          break;
+        case "success":
+          frequency = 1200;
+          break;
+        case "error":
+          frequency = 300;
+          break;
+        case "add":
+          frequency = 1000;
+          break;
+        default:
+          frequency = 600;
+      }
+
+      // Create simple beep sound
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = frequency;
+      oscillator.type = "sine";
+
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (error) {
+      console.log("Audio not available:", error);
+    }
+  };
+
   const handleAddKid = () => {
+    playSound("add");
     setKids([
       ...kids,
       {
@@ -31,6 +105,7 @@ const RegisterPage = () => {
   };
 
   const handleKidDetailsChange = (id, field, value) => {
+    playSound("click");
     const newKids = kids.map((kid) =>
       kid.id === id ? { ...kid, [field]: value } : kid
     );
@@ -38,11 +113,13 @@ const RegisterPage = () => {
   };
 
   const handleSelectAvatar = (id, avatarIndex) => {
+    playSound("click");
     const avatarUrl = `/images/avatar${avatarIndex}.png`;
     handleKidDetailsChange(id, "selectedAvatar", avatarUrl);
   };
 
   const handleRemoveKid = (id) => {
+    playSound("error");
     setKids(kids.filter((kid) => kid.id !== id));
   };
 
@@ -77,6 +154,7 @@ const RegisterPage = () => {
 
       const { token, userId } = await response.json();
       console.log("Registration successful, token:", token);
+      playSound("success");
 
       // Save token and userId to localStorage
       if (typeof window !== 'undefined') {
@@ -100,8 +178,8 @@ const RegisterPage = () => {
   const styles = {
     body: {
       fontFamily: "Comic Sans MS, cursive",
-      backgroundColor: "rgb(var(--background-start-rgb))",
-      color: "rgb(var(--foreground-rgb))",
+      backgroundColor: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)",
+      color: "#2c3e50",
       minHeight: "100vh",
       display: "flex",
       justifyContent: "center",
@@ -109,219 +187,584 @@ const RegisterPage = () => {
       backgroundImage: "url('/images/background.jpg')",
       backgroundSize: "cover",
       backgroundPosition: "center",
+      position: "relative",
+      overflow: "hidden",
+    },
+    animatedBg: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      background: "linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #dda0dd)",
+      backgroundSize: "600% 600%",
+      animation: "gradientShift 15s ease infinite",
+      zIndex: -1,
+    },
+    floatingStars: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      pointerEvents: "none",
+      zIndex: 0,
+    },
+    star: {
+      position: "absolute",
+      color: "#fff",
+      fontSize: "20px",
+      animation: "float 6s ease-in-out infinite",
     },
     container: {
       textAlign: "center",
-      backgroundColor: "#fff",
-      padding: "20px",
-      borderRadius: "8px",
-      boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
-      width: "80%",
-      maxWidth: "600px",
+      backgroundColor: "rgba(255, 255, 255, 0.95)",
+      padding: "30px",
+      borderRadius: "20px",
+      boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
+      width: "90%",
+      maxWidth: "700px",
+      position: "relative",
+      zIndex: 1,
+      animation: "slideInUp 1s ease-out",
+      border: "3px solid transparent",
+      backgroundClip: "padding-box",
+    },
+    title: {
+      fontSize: "3rem",
+      background: "linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1)",
+      backgroundClip: "text",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      marginBottom: "20px",
+      animation: "titleBounce 2s ease-in-out infinite",
+      textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+    },
+    welcomeMessageContainer: {
+      marginBottom: "20px",
+      height: "40px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    welcomeMessage: {
+      fontSize: "1.2rem",
+      color: "#7f8c8d",
+      animation: "fadeInOut 4s ease-in-out infinite",
+    },
+    characterDisplay: {
+      fontSize: "3rem",
+      display: "inline-block",
+      animation: "bounce 2s infinite",
+      marginLeft: "10px",
     },
     formInput: {
-      width: "100%",
+      width: "calc(100% - 20px)",
       marginBottom: "15px",
-      padding: "8px",
-      border: "1px solid #ccc",
-      borderRadius: "4px",
+      padding: "15px",
+      border: "2px solid #e1e8ed",
+      borderRadius: "25px",
       fontSize: "16px",
+      backgroundColor: "#f8f9fa",
+      transition: "all 0.3s ease",
+      outline: "none",
+      boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+    },
+    formInputFocus: {
+      borderColor: "#4ecdc4",
+      backgroundColor: "#fff",
+      transform: "translateY(-2px)",
+      boxShadow: "0 5px 20px rgba(78, 205, 196, 0.3)",
     },
     kidContainer: {
-      marginBottom: "20px",
-      padding: "10px",
-      border: "1px solid #ccc",
-      borderRadius: "4px",
+      marginBottom: "25px",
+      padding: "20px",
+      border: "3px solid #e1e8ed",
+      borderRadius: "20px",
+      backgroundColor: "linear-gradient(45deg, #ffeaa7, #fab1a0)",
+      animation: "kidCardSlide 0.6s ease-out",
+      position: "relative",
+      overflow: "hidden",
+    },
+    kidHeader: {
+      fontSize: "1.5rem",
+      color: "#2d3436",
+      marginBottom: "15px",
+      fontWeight: "bold",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "10px",
     },
     kidInput: {
-      width: "100%",
-      marginBottom: "10px",
-      padding: "8px",
-      border: "1px solid #007bff",
-      borderRadius: "4px",
+      width: "calc(100% - 20px)",
+      marginBottom: "12px",
+      padding: "12px",
+      border: "2px solid #74b9ff",
+      borderRadius: "15px",
       fontSize: "16px",
+      backgroundColor: "#fff",
+      transition: "all 0.3s ease",
+      outline: "none",
     },
     avatarContainer: {
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: "10px",
+      marginBottom: "15px",
+      flexWrap: "wrap",
+      gap: "10px",
     },
     avatarOption: {
-      width: "60px", // Increased size
-      height: "60px", // Increased size
+      width: "70px",
+      height: "70px",
       objectFit: "cover",
       borderRadius: "50%",
-      margin: "0 5px",
       cursor: "pointer",
-      border: "2px solid transparent",
-      transition: "border-color 0.3s ease",
+      border: "3px solid transparent",
+      transition: "all 0.3s ease",
+      animation: "avatarFloat 3s ease-in-out infinite",
+    },
+    avatarOptionHover: {
+      transform: "scale(1.1) rotate(5deg)",
+      boxShadow: "0 8px 25px rgba(0,0,0,0.2)",
     },
     selectedAvatar: {
-      borderColor: "red", // Initial red border color
-      animation: "shining 1.5s infinite alternate", // Shining effect
-    },
-    "@keyframes shining": {
-      "0%": { borderColor: "red" },
-      "100%": { borderColor: "pink" },
+      border: "4px solid #ff6b6b",
+      animation: "selectedPulse 1s ease-in-out infinite alternate",
+      transform: "scale(1.15)",
+      boxShadow: "0 0 20px rgba(255, 107, 107, 0.6)",
     },
     button: {
       width: "100%",
-      padding: "10px",
-      backgroundColor: "#007bff",
+      padding: "15px",
+      background: "linear-gradient(45deg, #ff6b6b, #4ecdc4)",
       color: "#fff",
       border: "none",
-      borderRadius: "4px",
+      borderRadius: "25px",
       cursor: "pointer",
-      fontSize: "16px",
-      marginTop: "15px",
+      fontSize: "18px",
+      fontWeight: "bold",
+      marginTop: "20px",
+      transition: "all 0.3s ease",
+      outline: "none",
+      textTransform: "uppercase",
+      letterSpacing: "1px",
+      position: "relative",
+      overflow: "hidden",
+    },
+    buttonHover: {
+      transform: "translateY(-3px)",
+      boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
     },
     addKidBtn: {
-      padding: "8px 16px",
-      backgroundColor: "#28a745",
+      padding: "12px 20px",
+      background: "linear-gradient(45deg, #00b894, #00cec9)",
       color: "#fff",
       border: "none",
-      borderRadius: "4px",
+      borderRadius: "20px",
       cursor: "pointer",
-      marginBottom: "10px",
+      marginBottom: "15px",
+      fontSize: "16px",
+      fontWeight: "bold",
+      transition: "all 0.3s ease",
+      animation: "buttonPulse 2s ease-in-out infinite",
+    },
+    removeKidBtn: {
+      padding: "8px 15px",
+      background: "linear-gradient(45deg, #e17055, #fd79a8)",
+      color: "#fff",
+      border: "none",
+      borderRadius: "15px",
+      cursor: "pointer",
+      fontSize: "14px",
+      fontWeight: "bold",
+      transition: "all 0.3s ease",
+      marginTop: "10px",
     },
     successMessage: {
       marginTop: "20px",
-      padding: "10px",
+      padding: "15px",
       backgroundColor: "#d4edda",
       color: "#155724",
-      border: "1px solid #c3e6cb",
-      borderRadius: "4px",
+      border: "2px solid #c3e6cb",
+      borderRadius: "15px",
+      animation: "successSlide 0.8s ease-out",
+      fontSize: "16px",
+      fontWeight: "bold",
     },
     error: {
-      color: "red",
+      color: "#e74c3c",
+      backgroundColor: "#fdf2f2",
+      padding: "10px",
+      borderRadius: "10px",
+      border: "2px solid #e74c3c",
+      animation: "errorShake 0.6s ease-in-out",
     },
-    taskImage: {
+    loadingOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      backgroundColor: "rgba(255,255,255,0.9)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      borderRadius: "20px",
+      zIndex: 10,
+    },
+    spinner: {
       width: "50px",
       height: "50px",
+      border: "5px solid #f3f3f3",
+      borderTop: "5px solid #4ecdc4",
       borderRadius: "50%",
-      overflow: "hidden",
-      position: "relative",
-      cursor: "pointer",
-      border: "3px solid #90EE90", // Soft green border
-    },
-    deleteButton: {
-      cursor: "pointer",
-      borderRadius: "8px", // Rounded corners
-      padding: "5px",
-      backgroundColor: "transparent",
-      border: "none",
+      animation: "spin 1s linear infinite",
     },
   };
 
   return (
-    <div style={styles.body}>
-      <div style={styles.container}>
-        <h1>Register</h1>
-        {error && <p style={styles.error}>{error}</p>}
-        <form onSubmit={handleRegister}>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            style={styles.formInput}
-            placeholder="Parent's Name"
-            required
-          />
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={styles.formInput}
-            placeholder="Magical Email"
-            required
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={styles.formInput}
-            placeholder="Super Secret Password"
-            required
-          />
-          {kids.map((kid, index) => (
-            <div key={kid.id} style={styles.kidContainer}>
-              <h3>Kid {index + 1}</h3>
-              <input
-                type="text"
-                value={kid.name}
-                onChange={(e) =>
-                  handleKidDetailsChange(kid.id, "name", e.target.value)
-                }
-                style={styles.kidInput}
-                placeholder="Superstar Name"
-                required
-              />
-              <input
-                type="date"
-                value={kid.birthDate}
-                onChange={(e) =>
-                  handleKidDetailsChange(kid.id, "birthDate", e.target.value)
-                }
-                style={styles.kidInput}
-                required
-              />
-              <div style={styles.avatarContainer}>
-                {[...Array(numAvatars)].map((_, avatarIndex) => {
-                  const avatarNum = avatarIndex + 1;
-                  const avatarUrl = `/images/avatar${avatarNum}.png`;
-                  return (
-                    <img
-                      key={avatarUrl}
-                      src={avatarUrl}
-                      alt={`Avatar ${avatarNum}`}
-                      style={{
-                        ...styles.avatarOption,
-                        ...(kid.selectedAvatar === avatarUrl
-                          ? styles.selectedAvatar
-                          : {}),
-                      }}
-                      onClick={() => handleSelectAvatar(kid.id, avatarNum)}
-                    />
-                  );
-                })}
-              </div>
-              <select
-                value={kid.gender}
-                onChange={(e) =>
-                  handleKidDetailsChange(kid.id, "gender", e.target.value)
-                }
-                style={styles.kidInput}
-                required
-              >
-                <option value="">Select Gender</option>
-                <option value="boy">Boy</option>
-                <option value="girl">Girl</option>
-              </select>
-              <button
-                type="button"
-                onClick={() => handleRemoveKid(kid.id)}
-                style={styles.addKidBtn}
-              >
-                Remove Kid
-              </button>
+    <>
+      <style jsx global>{`
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          25% { transform: translateY(-20px) rotate(5deg); }
+          50% { transform: translateY(-10px) rotate(-5deg); }
+          75% { transform: translateY(-15px) rotate(3deg); }
+        }
+        
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(50px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes titleBounce {
+          0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+          40% { transform: translateY(-10px); }
+          60% { transform: translateY(-5px); }
+        }
+        
+        @keyframes fadeInOut {
+          0%, 100% { opacity: 0.8; }
+          50% { opacity: 1; }
+        }
+        
+        @keyframes bounce {
+          0%, 20%, 50%, 80%, 100% { transform: translateY(0) scale(1); }
+          40% { transform: translateY(-10px) scale(1.1); }
+          60% { transform: translateY(-5px) scale(1.05); }
+        }
+        
+        @keyframes kidCardSlide {
+          from {
+            opacity: 0;
+            transform: translateX(-50px) scale(0.8);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+          }
+        }
+        
+        @keyframes avatarFloat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-5px); }
+        }
+        
+        @keyframes selectedPulse {
+          from { box-shadow: 0 0 20px rgba(255, 107, 107, 0.6); }
+          to { box-shadow: 0 0 30px rgba(255, 107, 107, 1); }
+        }
+        
+        @keyframes buttonPulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+          100% { transform: scale(1); }
+        }
+        
+        @keyframes successSlide {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes errorShake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
+        }
+        
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        
+        .input-focus {
+          border-color: #4ecdc4 !important;
+          background-color: #fff !important;
+          transform: translateY(-2px) !important;
+          box-shadow: 0 5px 20px rgba(78, 205, 196, 0.3) !important;
+        }
+        
+        .button-hover {
+          transform: translateY(-3px) !important;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+        }
+        
+        .avatar-hover {
+          transform: scale(1.1) rotate(5deg) !important;
+          box-shadow: 0 8px 25px rgba(0,0,0,0.2) !important;
+        }
+      `}</style>
+      
+      <div style={styles.body}>
+        {/* Animated Background */}
+        <div style={styles.animatedBg}></div>
+        
+        {/* Floating Stars */}
+        <div style={styles.floatingStars}>
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              style={{
+                ...styles.star,
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 6}s`,
+                animationDuration: `${6 + Math.random() * 4}s`,
+              }}
+            >
+              ⭐
             </div>
           ))}
-          <button type="button" onClick={handleAddKid} style={styles.addKidBtn}>
-            Add Kid
-          </button>
-          {registrationSuccess && (
-            <div style={styles.successMessage}>
-              User successfully registered! Please confirm registration before
-              proceeding.
+        </div>
+
+        <div style={styles.container}>
+          {isLoading && (
+            <div style={styles.loadingOverlay}>
+              <div style={styles.spinner}></div>
             </div>
           )}
-          <button type="submit" style={styles.button}>
-            Register
-          </button>
-        </form>
+          
+          <h1 style={styles.title}>
+            Create Family Account! 👨‍👩‍👧‍👦
+          </h1>
+          
+          <div style={styles.welcomeMessageContainer}>
+            <div style={styles.welcomeMessage}>
+              {welcomeMessage || "Let's create your super family! 👨‍👩‍👧‍👦"}
+            </div>
+            <span style={styles.characterDisplay}>
+              {characters[currentCharacter]}
+            </span>
+          </div>
+
+          {error && <div style={styles.error}>❌ {error}</div>}
+
+          <form onSubmit={handleRegister}>
+            <input
+              type="text"
+              placeholder="👤 Parent's Name"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              style={styles.formInput}
+              onFocus={(e) => e.target.classList.add('input-focus')}
+              onBlur={(e) => e.target.classList.remove('input-focus')}
+              required
+            />
+            <input
+              type="email"
+              placeholder="📧 Email Address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={styles.formInput}
+              onFocus={(e) => e.target.classList.add('input-focus')}
+              onBlur={(e) => e.target.classList.remove('input-focus')}
+              required
+            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="🔒 Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={styles.formInput}
+                onFocus={(e) => e.target.classList.add('input-focus')}
+                onBlur={(e) => e.target.classList.remove('input-focus')}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '15px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '20px'
+                }}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleAddKid}
+              style={styles.addKidBtn}
+              onMouseEnter={(e) => e.target.classList.add('button-hover')}
+              onMouseLeave={(e) => e.target.classList.remove('button-hover')}
+            >
+              ➕ Add Another Kid
+            </button>
+
+            {kids.map((kid, index) => (
+              <div key={kid.id} style={styles.kidContainer}>
+                <div style={styles.kidHeader}>
+                  👶 Kid #{index + 1} {kid.gender === 'boy' ? '👦' : kid.gender === 'girl' ? '👧' : '🧒'}
+                  {kids.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveKid(kid.id)}
+                      style={styles.removeKidBtn}
+                      onMouseEnter={(e) => e.target.classList.add('button-hover')}
+                      onMouseLeave={(e) => e.target.classList.remove('button-hover')}
+                    >
+                      🗑️ Remove
+                    </button>
+                  )}
+                </div>
+                
+                <input
+                  type="text"
+                  placeholder="📝 Kid's Name"
+                  value={kid.name}
+                  onChange={(e) =>
+                    handleKidDetailsChange(kid.id, "name", e.target.value)
+                  }
+                  style={styles.kidInput}
+                  onFocus={(e) => e.target.classList.add('input-focus')}
+                  onBlur={(e) => e.target.classList.remove('input-focus')}
+                  required
+                />
+                
+                <input
+                  type="date"
+                  placeholder="🎂 Birth Date"
+                  value={kid.birthDate}
+                  onChange={(e) =>
+                    handleKidDetailsChange(kid.id, "birthDate", e.target.value)
+                  }
+                  style={styles.kidInput}
+                  onFocus={(e) => e.target.classList.add('input-focus')}
+                  onBlur={(e) => e.target.classList.remove('input-focus')}
+                  required
+                />
+                
+                <select
+                  value={kid.gender}
+                  onChange={(e) =>
+                    handleKidDetailsChange(kid.id, "gender", e.target.value)
+                  }
+                  style={styles.kidInput}
+                  onFocus={(e) => e.target.classList.add('input-focus')}
+                  onBlur={(e) => e.target.classList.remove('input-focus')}
+                  required
+                >
+                  <option value="">👶 Select Gender</option>
+                  <option value="boy">👦 Boy</option>
+                  <option value="girl">👧 Girl</option>
+                </select>
+
+                <div style={styles.avatarContainer}>
+                  <p style={{ width: '100%', textAlign: 'center', margin: '0 0 10px 0', color: '#2d3436', fontWeight: 'bold' }}>
+                    🎨 Choose Avatar:
+                  </p>
+                  {[...Array(numAvatars)].map((_, avatarIndex) => {
+                    const avatarNumber = avatarIndex + 1;
+                    const avatarUrl = `/images/avatar${avatarNumber}.png`;
+                    const isSelected = kid.selectedAvatar === avatarUrl;
+                    
+                    return (
+                      <img
+                        key={avatarNumber}
+                        src={avatarUrl}
+                        alt={`Avatar ${avatarNumber}`}
+                        style={{
+                          ...styles.avatarOption,
+                          ...(isSelected ? styles.selectedAvatar : {}),
+                        }}
+                        onClick={() => handleSelectAvatar(kid.id, avatarNumber)}
+                        onMouseEnter={(e) => !isSelected && e.target.classList.add('avatar-hover')}
+                        onMouseLeave={(e) => e.target.classList.remove('avatar-hover')}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            {registrationSuccess && (
+              <div style={styles.successMessage}>
+                🎉 Registration successful! Welcome to the family! Redirecting to login...
+              </div>
+            )}
+
+            <button 
+              type="submit" 
+              style={styles.button}
+              onMouseEnter={(e) => e.target.classList.add('button-hover')}
+              onMouseLeave={(e) => e.target.classList.remove('button-hover')}
+              disabled={isLoading}
+            >
+              🚀 Create Family Account
+            </button>
+          </form>
+          
+          <div style={{ marginTop: '20px', textAlign: 'center' }}>
+            <p style={{ color: '#7f8c8d', fontSize: '16px' }}>
+              Already have an account?{' '}
+              <button
+                type="button"
+                onClick={() => router.push('/login')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#4ecdc4',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  textDecoration: 'underline'
+                }}
+              >
+                🏠 Login Here
+              </button>
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

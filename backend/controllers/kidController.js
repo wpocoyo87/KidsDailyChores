@@ -7,6 +7,10 @@ import {
   getTasksService,
   deleteTaskService,
   updateTaskCompletionService,
+  setKidPinService,
+  kidLoginService,
+  removeKidPinService,
+  getKidsByParentEmailService,
 } from "../services/kidService.js";
 import { addKidService } from "../services/userService.js";
 import asyncHandler from "express-async-handler";
@@ -39,10 +43,19 @@ export const createKid = asyncHandler(async (req, res) => {
 
 export const getKidById = asyncHandler(async (req, res) => {
   const { kidId } = req.params;
-  const { _id: userId } = req.user;
+  
+  // Determine user ID and role based on authentication
+  let userId, userRole;
+  if (req.userRole === 'kid') {
+    userId = req.kid._id;
+    userRole = 'kid';
+  } else {
+    userId = req.user._id;
+    userRole = 'parent';
+  }
 
   try {
-    const kid = await getKidByIdService(userId, kidId);
+    const kid = await getKidByIdService(userId, kidId, userRole);
     res.status(200).json(kid);
   } catch (error) {
     console.error("Error fetching kid:", error);
@@ -166,22 +179,35 @@ export const deleteTask = asyncHandler(async (req, res) => {
 export const updateTaskCompletion = asyncHandler(async (req, res) => {
   const { kidId, taskId } = req.params;
   const { completed } = req.body;
-  const { _id: userId } = req.user;
+  
+  // Determine user ID and role based on authentication
+  let userId, userRole;
+  if (req.userRole === 'kid') {
+    userId = req.kid._id;
+    userRole = 'kid';
+  } else {
+    userId = req.user._id;
+    userRole = 'parent';
+  }
 
   try {
     console.log(
-      `Updating task completion with taskId: ${taskId} for kidId: ${kidId}, userId: ${userId}`
+      `Updating task completion with taskId: ${taskId} for kidId: ${kidId}, userId: ${userId}, role: ${userRole}`
     );
 
-    const updatedKid = await updateTaskCompletionService(
+    const { task, kid } = await updateTaskCompletionService(
       userId,
       kidId,
       taskId,
-      completed
+      completed,
+      userRole
     );
+    
     res.status(200).json({
       message: "Task completion updated successfully",
-      kid: updatedKid,
+      task: task,
+      kid: kid,
+      totalPoints: kid.points
     });
   } catch (error) {
     console.error("Error updating task completion:", error);
@@ -210,5 +236,64 @@ export const addKid = asyncHandler(async (req, res) => {
   } catch (error) {
     console.error("Error adding kid:", error);
     res.status(500).json({ message: error.message });
+  }
+});
+
+// Kids Authentication Controllers
+export const setKidPin = asyncHandler(async (req, res) => {
+  const { kidId } = req.params;
+  const { pin } = req.body;
+  const { _id: userId } = req.user;
+
+  console.log(`Setting PIN for kid ${kidId} by user ${userId}`); // Debug log
+
+  try {
+    const result = await setKidPinService(userId, kidId, pin);
+    console.log("PIN set successfully:", result); // Debug log
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error setting kid PIN:", error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+export const kidLogin = asyncHandler(async (req, res) => {
+  const { kidId, pin } = req.body;
+
+  try {
+    const result = await kidLoginService(kidId, pin);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error in kid login:", error);
+    res.status(401).json({ error: error.message });
+  }
+});
+
+export const removeKidPin = asyncHandler(async (req, res) => {
+  const { kidId } = req.params;
+  const { _id: userId } = req.user;
+
+  try {
+    const result = await removeKidPinService(userId, kidId);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error removing kid PIN:", error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+export const getKidsByParentEmail = asyncHandler(async (req, res) => {
+  const { parentEmail } = req.body;
+
+  if (!parentEmail) {
+    return res.status(400).json({ error: "Parent email is required" });
+  }
+
+  try {
+    const kids = await getKidsByParentEmailService(parentEmail);
+    res.status(200).json({ success: true, kids });
+  } catch (error) {
+    console.error("Error getting kids by parent email:", error);
+    res.status(404).json({ error: error.message });
   }
 });

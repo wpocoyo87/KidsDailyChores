@@ -100,6 +100,7 @@ const ListTaskPage = () => {
     const updatedTasks = [...tasks];
     updatedTasks[index].completed = !updatedTasks[index].completed;
     setTasks(updatedTasks);
+    
     try {
       let tokenValue = token;
       if (typeof window !== "undefined") {
@@ -109,7 +110,9 @@ const ListTaskPage = () => {
         console.error("Kid ID is missing or undefined");
         return;
       }
-      await axios.put(
+      
+      // Update task completion status - backend will automatically calculate points
+      const response = await axios.put(
         `${apiUrl}/kids/${kid._id}/tasks/${updatedTasks[index]._id}/completion`,
         { completed: updatedTasks[index].completed },
         {
@@ -118,35 +121,18 @@ const ListTaskPage = () => {
           },
         }
       );
-      const updatedPoints = await updateStarsForKid(kid._id, updatedTasks, tokenValue);
-      setKid((prevKid) => ({ ...prevKid, points: updatedPoints }));
+      
+      // Update kid points from backend response
+      if (response.data && response.data.totalPoints !== undefined) {
+        setKid((prevKid) => ({ ...prevKid, points: response.data.totalPoints }));
+        console.log(`Points updated to: ${response.data.totalPoints}`);
+      }
+      
     } catch (error) {
       console.error("Error updating task:", error);
+      // Revert the task completion status on error
       updatedTasks[index].completed = !updatedTasks[index].completed;
       setTasks(updatedTasks);
-    }
-  };
-
-  const updateStarsForKid = async (kidId, updatedTasks, tokenValue = token) => {
-    const completedTasks = updatedTasks.filter((task) => task.completed);
-    const totalStars = completedTasks.length;
-    try {
-      if (typeof window !== "undefined") {
-        tokenValue = localStorage.getItem("token");
-      }
-      const updatedKidResponse = await axios.put(
-        `${apiUrl}/kids/${kidId}/points`,
-        { points: totalStars },
-        {
-          headers: {
-            Authorization: `Bearer ${tokenValue}`,
-          },
-        }
-      );
-      return updatedKidResponse.data.kid.points;
-    } catch (error) {
-      console.error("Error updating stars for kid:", error);
-      return kid.points;
     }
   };
 
@@ -192,6 +178,7 @@ const ListTaskPage = () => {
     try {
       const token = localStorage.getItem("token");
 
+      // Complete all tasks - backend will automatically calculate total points
       const promises = tasks.map((task) =>
         axios.put(
           `${apiUrl}/kids/${kid._id}/tasks/${task._id}/completion`,
@@ -204,22 +191,18 @@ const ListTaskPage = () => {
         )
       );
 
-      await Promise.all(promises);
+      const responses = await Promise.all(promises);
+      
+      // Get the final points from the last response (all should have same total)
+      const lastResponse = responses[responses.length - 1];
+      if (lastResponse.data && lastResponse.data.totalPoints !== undefined) {
+        setKid((prevKid) => ({
+          ...prevKid,
+          points: lastResponse.data.totalPoints,
+        }));
+        console.log(`All tasks completed! Total points: ${lastResponse.data.totalPoints}`);
+      }
 
-      const updatedKidResponse = await axios.put(
-        `${apiUrl}/kids/${kid._id}/points`,
-        { points: tasks.length },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setKid((prevKid) => ({
-        ...prevKid,
-        points: updatedKidResponse.data.kid.points,
-      }));
       setTasks(tasks.map((task) => ({ ...task, completed: true })));
       router.push(`/completedTask?kidName=${kid.name}`);
     } catch (error) {

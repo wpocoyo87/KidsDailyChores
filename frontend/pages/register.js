@@ -177,7 +177,7 @@ const RegisterPage = () => {
 
   const styles = {
     body: {
-      fontFamily: "Comic Sans MS, cursive",
+      fontFamily: "'Gloria Hallelujah', cursive",
       backgroundColor: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)",
       color: "#2c3e50",
       minHeight: "100vh",

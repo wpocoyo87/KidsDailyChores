@@ -406,7 +406,7 @@ const KidProfilePage = () => {
 
 const styles = {
   body: {
-    fontFamily: "Comic Sans MS, cursive",
+    fontFamily: "'Gloria Hallelujah', cursive",
     backgroundColor: "#fff",
     color: "#2c3e50",
     minHeight: "100vh",
@@ -610,7 +610,7 @@ const styles = {
     alignItems: "center",
     minHeight: "100vh",
     backgroundColor: "#f8f9fa",
-    fontFamily: "Comic Sans MS, cursive",
+    fontFamily: "'Gloria Hallelujah', cursive",
   },
   loadingSpinner: {
     width: "60px",

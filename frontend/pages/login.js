@@ -133,7 +133,7 @@ const LoginPage = () => {
 
   const styles = {
     body: {
-      fontFamily: "Comic Sans MS, cursive",
+      fontFamily: "Gloria Hallelujah, cursive",
       background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
       minHeight: "100vh",
       display: "flex",
@@ -223,7 +223,7 @@ const LoginPage = () => {
       fontSize: "16px",
       outline: "none",
       transition: "all 0.3s ease",
-      fontFamily: "Comic Sans MS, cursive",
+      fontFamily: "Gloria Hallelujah, cursive",
       backgroundColor: "rgba(255,255,255,0.9)",
       boxSizing: "border-box",
     },
@@ -254,7 +254,7 @@ const LoginPage = () => {
       fontWeight: "bold",
       cursor: "pointer",
       transition: "all 0.3s ease",
-      fontFamily: "Comic Sans MS, cursive",
+      fontFamily: "Gloria Hallelujah, cursive",
       boxShadow: "0 8px 25px rgba(102,126,234,0.4)",
       display: "flex",
       alignItems: "center",

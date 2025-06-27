@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  font-family: "Comic Sans MS", cursive;
+  font-family: "Gloria Hallelujah", cursive;
   position: relative;
   overflow: hidden;
 }
@@ -36,7 +36,7 @@
 .h1 {
   font-size: 2.5rem;
   color: black;
-  font-family: "Comic Sans MS", cursive, sans-serif;
+  font-family: "Gloria Hallelujah", cursive;
 }
 
 .addItem {
@@ -351,7 +351,7 @@
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: "Comic Sans MS", cursive;
+  font-family: "Gloria Hallelujah", cursive;
   position: relative;
   overflow: hidden;
 }

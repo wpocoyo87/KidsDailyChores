@@ -60,7 +60,7 @@ const AddKidPage = () => {
 
   const styles = {
     body: {
-      fontFamily: "'Gloria Hallelujah', cursive",
+      fontFamily: "Comic Sans MS, cursive",
       backgroundColor: "rgb(var(--background-start-rgb))",
       color: "rgb(var(--foreground-rgb))",
       minHeight: "100vh",

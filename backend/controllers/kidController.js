@@ -7,10 +7,6 @@ import {
   getTasksService,
   deleteTaskService,
   updateTaskCompletionService,
-  setKidPinService,
-  kidLoginService,
-  removeKidPinService,
-  getKidsByParentEmailService,
 } from "../services/kidService.js";
 import { addKidService } from "../services/userService.js";
 import asyncHandler from "express-async-handler";
@@ -43,19 +39,10 @@ export const createKid = asyncHandler(async (req, res) => {
 
 export const getKidById = asyncHandler(async (req, res) => {
   const { kidId } = req.params;
-  
-  // Determine user ID and role based on authentication
-  let userId, userRole;
-  if (req.userRole === 'kid') {
-    userId = req.kid._id;
-    userRole = 'kid';
-  } else {
-    userId = req.user._id;
-    userRole = 'parent';
-  }
+  const { _id: userId } = req.user;
 
   try {
-    const kid = await getKidByIdService(userId, kidId, userRole);
+    const kid = await getKidByIdService(userId, kidId);
     res.status(200).json(kid);
   } catch (error) {
     console.error("Error fetching kid:", error);
@@ -179,35 +166,22 @@ export const deleteTask = asyncHandler(async (req, res) => {
 export const updateTaskCompletion = asyncHandler(async (req, res) => {
   const { kidId, taskId } = req.params;
   const { completed } = req.body;
-  
-  // Determine user ID and role based on authentication
-  let userId, userRole;
-  if (req.userRole === 'kid') {
-    userId = req.kid._id;
-    userRole = 'kid';
-  } else {
-    userId = req.user._id;
-    userRole = 'parent';
-  }
+  const { _id: userId } = req.user;
 
   try {
     console.log(
-      `Updating task completion with taskId: ${taskId} for kidId: ${kidId}, userId: ${userId}, role: ${userRole}`
+      `Updating task completion with taskId: ${taskId} for kidId: ${kidId}, userId: ${userId}`
     );
 
-    const { task, kid } = await updateTaskCompletionService(
+    const updatedKid = await updateTaskCompletionService(
       userId,
       kidId,
       taskId,
-      completed,
-      userRole
+      completed
     );
-    
     res.status(200).json({
       message: "Task completion updated successfully",
-      task: task,
-      kid: kid,
-      totalPoints: kid.points
+      kid: updatedKid,
     });
   } catch (error) {
     console.error("Error updating task completion:", error);
@@ -218,82 +192,16 @@ export const updateTaskCompletion = asyncHandler(async (req, res) => {
 });
 
 export const addKid = asyncHandler(async (req, res) => {
-  const { name, gender, birthDate, selectedAvatar } = req.body;
   const userId = req.user._id;
-
-  if (!name || !gender || !birthDate || !selectedAvatar) {
-    return res.status(400).json({ message: "Please fill all fields" });
-  }
+  const kidData = req.body;
+  console.log(`User ID received: ${userId}`);
+  console.log(`Kid data received: ${JSON.stringify(kidData)}`);
 
   try {
-    const newKid = await addKidService(userId, {
-      name,
-      birthDate,
-      selectedAvatar,
-      gender,
-    });
+    const newKid = await addKidService(userId, kidData);
     res.status(201).json(newKid);
   } catch (error) {
     console.error("Error adding kid:", error);
     res.status(500).json({ message: error.message });
-  }
-});
-
-// Kids Authentication Controllers
-export const setKidPin = asyncHandler(async (req, res) => {
-  const { kidId } = req.params;
-  const { pin } = req.body;
-  const { _id: userId } = req.user;
-
-  console.log(`Setting PIN for kid ${kidId} by user ${userId}`); // Debug log
-
-  try {
-    const result = await setKidPinService(userId, kidId, pin);
-    console.log("PIN set successfully:", result); // Debug log
-    res.status(200).json(result);
-  } catch (error) {
-    console.error("Error setting kid PIN:", error);
-    res.status(400).json({ error: error.message });
-  }
-});
-
-export const kidLogin = asyncHandler(async (req, res) => {
-  const { kidId, pin } = req.body;
-
-  try {
-    const result = await kidLoginService(kidId, pin);
-    res.status(200).json(result);
-  } catch (error) {
-    console.error("Error in kid login:", error);
-    res.status(401).json({ error: error.message });
-  }
-});
-
-export const removeKidPin = asyncHandler(async (req, res) => {
-  const { kidId } = req.params;
-  const { _id: userId } = req.user;
-
-  try {
-    const result = await removeKidPinService(userId, kidId);
-    res.status(200).json(result);
-  } catch (error) {
-    console.error("Error removing kid PIN:", error);
-    res.status(400).json({ error: error.message });
-  }
-});
-
-export const getKidsByParentEmail = asyncHandler(async (req, res) => {
-  const { parentEmail } = req.body;
-
-  if (!parentEmail) {
-    return res.status(400).json({ error: "Parent email is required" });
-  }
-
-  try {
-    const kids = await getKidsByParentEmailService(parentEmail);
-    res.status(200).json({ success: true, kids });
-  } catch (error) {
-    console.error("Error getting kids by parent email:", error);
-    res.status(404).json({ error: error.message });
   }
 });

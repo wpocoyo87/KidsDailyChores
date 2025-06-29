@@ -1,52 +1,39 @@
 import asyncHandler from "express-async-handler";
-import { generateToken } from "../config/authConfig.js";
 import {
   registerUserService,
   loginUserService,
   getUserByEmailService,
+  addKidService,
   getKidsByUserIdService,
 } from "../services/userService.js";
 import User from "../models/UserModel.js";
 
-// Controller to register a new user
-const registerUser = asyncHandler(async (req, res) => {
+// @desc    Register a new user
+// @route   POST /api/users/register
+// @access  Public
+export const registerUser = asyncHandler(async (req, res) => {
   const { username, email, password, kids } = req.body;
-
-  console.log("Received data:", req.body);
-
   try {
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res
-        .status(400)
-        .json({ message: "User with this email already exists" });
-    }
-
-    const usernameExists = await User.findOne({ username });
-    if (usernameExists) {
-      return res
-        .status(400)
-        .json({ message: "User with this username already exists" });
-    }
-
-    const newUser = await registerUserService({username, email, password, kids});
+    const user = await registerUserService({ username, email, password, kids });
+    // Generate token (reuse login service logic)
+    const { token } = await loginUserService(email, password);
     res.status(201).json({
-      _id: newUser._id,
-      username: newUser.username,
-      email: newUser.email,
-      kids: newUser.kids,
-      token: generateToken(newUser._id),
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      kids: user.kids,
+      token,
     });
   } catch (error) {
-    console.error("Error during user registration:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(400).json({ message: error.message });
   }
 });
 
-// Controller to login a user
-const loginUser = asyncHandler(async (req, res) => {
+// @desc    Login user
+// @route   POST /api/users/login
+// @access  Public
+export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-
   try {
     const { user, token } = await loginUserService(email, password);
     res.json({
@@ -54,55 +41,45 @@ const loginUser = asyncHandler(async (req, res) => {
       username: user.username,
       email: user.email,
       kids: user.kids,
-      token: token,
+      token,
     });
   } catch (error) {
-    console.error("Login error:", error);
     res.status(401).json({ message: error.message });
   }
 });
 
-// Controller to get user by email
-const getUserByEmail = asyncHandler(async (req, res) => {
+// @desc    Get user by ID
+// @route   GET /api/users/:id
+// @access  Private
+export const getUserById = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id).select("-password").populate("kids");
+  if (user) {
+    res.json(user);
+  } else {
+    res.status(404).json({ message: "User not found" });
+  }
+});
+
+// @desc    Get user by email
+// @route   GET /api/users/profile/:email
+// @access  Private
+export const getUserByEmail = asyncHandler(async (req, res) => {
   try {
     const user = await getUserByEmailService(req.params.email);
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-    } else {
-      res.json(user);
-    }
+    res.json(user);
   } catch (error) {
-    console.error("Error fetching user by email:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(404).json({ message: error.message });
   }
 });
 
-// Controller to get user by ID
-const getUserById = asyncHandler(async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id)
-      .populate("kids")
-      .select("-password");
-    if (user) {
-      res.json(user);
-    } else {
-      res.status(404).json({ message: "User not found" });
-    }
-  } catch (error) {
-    console.error("Error fetching user by ID:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// Controller to get kids by user ID
-const getKidsByUserId = asyncHandler(async (req, res) => {
+// @desc    Get kids by user ID
+// @route   GET /api/users/:userId/kids
+// @access  Private
+export const getKidsByUserId = asyncHandler(async (req, res) => {
   try {
     const kids = await getKidsByUserIdService(req.params.userId);
     res.json(kids);
   } catch (error) {
-    console.error("Error fetching kids by user ID:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(404).json({ message: error.message });
   }
 });
-
-export { registerUser, loginUser, getUserByEmail, getUserById, getKidsByUserId };

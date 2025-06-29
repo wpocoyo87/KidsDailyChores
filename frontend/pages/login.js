@@ -20,7 +20,7 @@ const LoginPage = () => {
   const welcomeMessages = [
     "Welcome back, Super Hero! 🦸‍♂️",
     "Ready for more adventures? 🌟",
-    "Let's create some awesome tasks! 🎯",
+    "Let&apos;s create some awesome tasks! 🎯",
     "Time to be amazing! ✨",
     "Your daily missions await! 🚀",
   ]
@@ -124,7 +124,7 @@ const LoginPage = () => {
       router.push("/choosekids")
     } catch (error) {
       console.error("Login error:", error)
-      setError("🔐 Hmm, that doesn't look right! Check your email and password! 🔐")
+      setError("🔐 Hmm, that doesn&apos;t look right! Check your email and password! 🔐")
       playSound("error")
     } finally {
       setIsLoading(false)

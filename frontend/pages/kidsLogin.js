@@ -316,7 +316,7 @@ const KidsLoginPage = () => {
     },
     loginButton: {
       width: "100%",
-      padding: "18px",
+      padding: "18px 20px",
       borderRadius: "20px",
       border: "none",
       fontSize: "18px",
@@ -328,10 +328,11 @@ const KidsLoginPage = () => {
       color: "white",
       marginBottom: "15px",
       boxShadow: "0 8px 25px rgba(0, 184, 148, 0.4)",
+      boxSizing: "border-box",
     },
     parentButton: {
       width: "100%",
-      padding: "15px",
+      padding: "18px 20px",
       borderRadius: "20px",
       border: "3px solid #667eea",
       fontSize: "16px",
@@ -341,6 +342,7 @@ const KidsLoginPage = () => {
       transition: "all 0.3s ease",
       backgroundColor: "rgba(255,255,255,0.9)",
       color: "#667eea",
+      boxSizing: "border-box",
     },
     errorMessage: {
       color: "#e74c3c",
@@ -371,6 +373,7 @@ const KidsLoginPage = () => {
       outline: "none",
       transition: "all 0.3s ease",
       marginBottom: "20px",
+      boxSizing: "border-box",
     },
     emailInputFocus: {
       borderColor: "#4ecdc4",
@@ -388,6 +391,7 @@ const KidsLoginPage = () => {
       backgroundColor: "rgba(255,255,255,0.9)",
       color: "#95a5a6",
       marginBottom: "20px",
+      boxSizing: "border-box",
     },
     stepIndicator: {
       display: "flex",

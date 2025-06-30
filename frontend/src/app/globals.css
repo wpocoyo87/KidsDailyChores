@@ -210,9 +210,61 @@ a {
   }
 }
 
-input, textarea, input::placeholder, textarea::placeholder, select, option {
+input, textarea, select, option {
   color: #222 !important;
   font-family: "Comic Sans MS" !important;
+}
+
+/* Placeholder styling */
+input::placeholder, textarea::placeholder {
+  color: #999 !important;
+  font-family: "Comic Sans MS" !important;
+  opacity: 1;
+}
+
+/* Better placeholder styling for different browsers */
+input::-webkit-input-placeholder {
+  color: #999 !important;
+  font-family: "Comic Sans MS" !important;
+}
+
+input::-moz-placeholder {
+  color: #999 !important;
+  font-family: "Comic Sans MS" !important;
+  opacity: 1;
+}
+
+input:-ms-input-placeholder {
+  color: #999 !important;
+  font-family: "Comic Sans MS" !important;
+}
+
+input:-moz-placeholder {
+  color: #999 !important;
+  font-family: "Comic Sans MS" !important;
+  opacity: 1;
+}
+
+textarea::-webkit-input-placeholder {
+  color: #999 !important;
+  font-family: "Comic Sans MS" !important;
+}
+
+textarea::-moz-placeholder {
+  color: #999 !important;
+  font-family: "Comic Sans MS" !important;
+  opacity: 1;
+}
+
+textarea:-ms-input-placeholder {
+  color: #999 !important;
+  font-family: "Comic Sans MS" !important;
+}
+
+textarea:-moz-placeholder {
+  color: #999 !important;
+  font-family: "Comic Sans MS" !important;
+  opacity: 1;
 }
 
 /* Ensure buttons and interactive elements use Comic Sans MS */

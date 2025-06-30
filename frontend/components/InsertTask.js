@@ -183,11 +183,11 @@ const InsertTask = () => {
     datePickerContainer: {
       width: "100%",
       position: "relative",
-      zIndex: 100,
+      zIndex: 1000,
     },
     datePicker: {
-      width: "100%",
-      padding: "15px 20px",
+      width: "60%",
+      padding: "12px 16px",
       border: "2px solid #e2e8f0",
       borderRadius: "15px",
       fontSize: "16px",
@@ -195,7 +195,7 @@ const InsertTask = () => {
       transition: "all 0.3s ease",
       fontFamily: "Comic Sans MS",
       position: "relative",
-      zIndex: 100,
+      zIndex: 1000,
     },
     imageGrid: {
       display: "grid",
@@ -564,15 +564,15 @@ const InsertTask = () => {
       <style jsx global>{`
         /* React DatePicker Custom Styles */
         .react-datepicker-wrapper {
-          width: 100%;
+          width: 60%;
           position: relative;
-          z-index: 100 !important;
+          z-index: 1000 !important;
         }
         
         .react-datepicker__input-container {
           width: 100%;
           position: relative;
-          z-index: 100 !important;
+          z-index: 1000 !important;
         }
         
         .react-datepicker {
@@ -580,7 +580,7 @@ const InsertTask = () => {
           border: 2px solid #e2e8f0 !important;
           border-radius: 15px !important;
           box-shadow: 0 20px 50px rgba(0,0,0,0.3) !important;
-          z-index: 9999 !important;
+          z-index: 99999 !important;
           position: absolute !important;
         }
         
@@ -640,9 +640,17 @@ const InsertTask = () => {
           border-left-color: white !important;
         }
         
+        .react-datepicker__portal {
+          z-index: 99999 !important;
+        }
+        
+        .react-datepicker-popper {
+          z-index: 99999 !important;
+        }
+        
         .datePicker {
           width: 100% !important;
-          padding: 15px 20px !important;
+          padding: 12px 16px !important;
           border: 2px solid #e2e8f0 !important;
           border-radius: 15px !important;
           fontSize: 16px !important;
@@ -836,6 +844,8 @@ const InsertTask = () => {
                   dateFormat="yyyy-MM-dd"
                   className="datePicker"
                   style={styles.datePicker}
+                  withPortal
+                  portalId="root-portal"
                 />
               </div>
             </div>

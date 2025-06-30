@@ -257,6 +257,16 @@ const KidProfilePage = () => {
           transform: scale(1.05) !important;
           box-shadow: 0 15px 30px rgba(0,0,0,0.2) !important;
         }
+        
+        /* Remove underlines from all links */
+        a {
+          text-decoration: none !important;
+        }
+        
+        /* Ensure buttons inside links don't have underlines */
+        a button {
+          text-decoration: none !important;
+        }
       `}</style>
       
       <div style={styles.body}>
@@ -352,7 +362,7 @@ const KidProfilePage = () => {
 
           {/* Action Buttons */}
           <div style={styles.buttonGrid}>
-            <Link href="/insert-task">
+            <Link href="/insert-task" style={{textDecoration: "none"}}>
               <button 
                 style={{...styles.actionButton, ...styles.insertTaskBtn}}
                 onMouseEnter={(e) => e.target.classList.add('button-hover')}
@@ -364,7 +374,7 @@ const KidProfilePage = () => {
               </button>
             </Link>
             
-            <Link href="/listTask">
+            <Link href="/listTask" style={{textDecoration: "none"}}>
               <button 
                 style={{...styles.actionButton, ...styles.checkTaskBtn}}
                 onMouseEnter={(e) => e.target.classList.add('button-hover')}
@@ -376,7 +386,7 @@ const KidProfilePage = () => {
               </button>
             </Link>
             
-            <Link href="/choosekids">
+            <Link href="/choosekids" style={{textDecoration: "none"}}>
               <button 
                 style={{...styles.actionButton, ...styles.changeKidBtn}}
                 onMouseEnter={(e) => e.target.classList.add('button-hover')}

@@ -79,6 +79,7 @@
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  font-family: "Comic Sans MS" !important;
 }
 
 html,
@@ -93,9 +94,14 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
-  font-family: "Comic Sans MS";
+  font-family: "Comic Sans MS" !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure all text elements use Comic Sans MS */
+h1, h2, h3, h4, h5, h6, p, div, span, a, button, input, textarea, select, label, li, td, th {
+  font-family: "Comic Sans MS" !important;
 }
 
 body {
@@ -115,7 +121,17 @@ a {
   }
 }
 
-input, textarea, input::placeholder, textarea::placeholder {
+input, textarea, input::placeholder, textarea::placeholder, select, option {
   color: #222 !important;
+  font-family: "Comic Sans MS" !important;
+}
+
+/* Ensure buttons and interactive elements use Comic Sans MS */
+button, .btn, .button {
+  font-family: "Comic Sans MS" !important;
+}
+
+/* Apply Comic Sans MS to all Next.js and React components */
+[class*="component"], [class*="Component"], [id*="component"], [id*="Component"] {
   font-family: "Comic Sans MS" !important;
 }

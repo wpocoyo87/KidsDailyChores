@@ -46,7 +46,7 @@ const InsertTask = () => {
     },
     loadingText: {
       fontSize: "18px",
-      fontFamily: "Gloria Hallelujah",
+      fontFamily: "Comic Sans MS",
     },
     loadingEmoji: {
       fontSize: "3rem",
@@ -233,7 +233,7 @@ const InsertTask = () => {
       outline: "none",
       transition: "all 0.3s ease",
       marginBottom: "20px",
-      fontFamily: "Gloria Hallelujah",
+      fontFamily: "Comic Sans MS",
     },
     addButton: {
       width: "100%",
@@ -251,7 +251,7 @@ const InsertTask = () => {
       justifyContent: "center",
       gap: "10px",
       boxShadow: "0 8px 25px rgba(102,126,234,0.4)",
-      fontFamily: "Gloria Hallelujah",
+      fontFamily: "Comic Sans MS",
     },
     saveButton: {
       width: "100%",
@@ -269,7 +269,7 @@ const InsertTask = () => {
       justifyContent: "center",
       gap: "10px",
       boxShadow: "0 8px 25px rgba(72,187,120,0.4)",
-      fontFamily: "Gloria Hallelujah",
+      fontFamily: "Comic Sans MS",
     },
     outlineButton: {
       width: "100%",
@@ -286,7 +286,7 @@ const InsertTask = () => {
       alignItems: "center",
       justifyContent: "center",
       gap: "10px",
-      fontFamily: "Gloria Hallelujah",
+      fontFamily: "Comic Sans MS",
     },
     tasksList: {
       maxHeight: "300px",

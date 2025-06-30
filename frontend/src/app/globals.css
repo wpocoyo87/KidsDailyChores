@@ -99,8 +99,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Force Comic Sans MS on ALL elements */
+* {
+  font-family: "Comic Sans MS" !important;
+}
+
 /* Ensure all text elements use Comic Sans MS */
 h1, h2, h3, h4, h5, h6, p, div, span, a, button, input, textarea, select, label, li, td, th {
+  font-family: "Comic Sans MS" !important;
+}
+
+/* Force on all possible selectors */
+body *, 
+html *, 
+#__next *, 
+[data-reactroot] *,
+.next-root * {
   font-family: "Comic Sans MS" !important;
 }
 
@@ -133,5 +147,26 @@ button, .btn, .button {
 
 /* Apply Comic Sans MS to all Next.js and React components */
 [class*="component"], [class*="Component"], [id*="component"], [id*="Component"] {
+  font-family: "Comic Sans MS" !important;
+}
+
+/* Override any possible framework fonts */
+.MuiTypography-root,
+.ant-typography,
+.chakra-text,
+.bp3-text,
+.ui.text {
+  font-family: "Comic Sans MS" !important;
+}
+
+/* React DatePicker specific */
+.react-datepicker,
+.react-datepicker *,
+.react-datepicker__input-container input,
+.react-datepicker__header,
+.react-datepicker__day,
+.react-datepicker__day-name,
+.react-datepicker__month,
+.react-datepicker__year {
   font-family: "Comic Sans MS" !important;
 }

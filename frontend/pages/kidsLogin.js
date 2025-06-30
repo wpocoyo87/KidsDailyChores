@@ -116,10 +116,12 @@ const KidsLoginPage = () => {
 
       if (response.data.success) {
         // Store the kid's token and info in localStorage
+        const kidFromLogin = response.data.kid; // Use kid data from login response
+        
         localStorage.setItem('kidToken', response.data.token);
-        localStorage.setItem('kidId', selectedKid._id);
-        localStorage.setItem('kidName', selectedKid.name);
-        localStorage.setItem('kidData', JSON.stringify(selectedKid));
+        localStorage.setItem('kidId', kidFromLogin._id);
+        localStorage.setItem('kidName', kidFromLogin.name);
+        localStorage.setItem('kidData', JSON.stringify(kidFromLogin));
         localStorage.setItem('userRole', 'kid');
         
         playSound("success");

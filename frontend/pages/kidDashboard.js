@@ -19,6 +19,9 @@ const KidDashboard = () => {
     const kidToken = localStorage.getItem('kidToken');
     const savedKidData = localStorage.getItem('kidData');
     
+    console.log('Kid token exists:', !!kidToken);
+    console.log('Saved kid data:', savedKidData);
+    
     if (!kidToken || !savedKidData) {
       router.push('/kidsLogin');
       return;
@@ -26,6 +29,15 @@ const KidDashboard = () => {
 
     try {
       const parsed = JSON.parse(savedKidData);
+      console.log('Parsed kid data:', parsed);
+      console.log('Kid ID:', parsed._id);
+      
+      if (!parsed._id) {
+        console.error('Kid ID is missing from stored data');
+        router.push('/kidsLogin');
+        return;
+      }
+      
       setKidData(parsed);
       setPoints(parsed.totalPoints || 0);
       
@@ -48,11 +60,21 @@ const KidDashboard = () => {
     return () => clearInterval(interval);
   }, [router, emojis.length]);  const loadKidTasks = async (kidId, token) => {
     try {
+      console.log('Loading tasks for kidId:', kidId);
+      
+      // Check if kidId is valid
+      if (!kidId || kidId === 'undefined') {
+        console.error('Invalid kidId for loading tasks:', kidId);
+        return;
+      }
+      
       const response = await axios.get(`${apiUrl}/kids/${kidId}/tasks`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
+
+      console.log('Tasks response:', response.data);
 
       if (response.data.success) {
         setTasks(response.data.tasks || []);
@@ -64,12 +86,20 @@ const KidDashboard = () => {
       }
     } catch (error) {
       console.error('Error loading tasks:', error);
+      console.error('Error details:', error.response?.data);
     }
   };
 
   const refreshKidData = async (kidId, token) => {
     try {
       console.log('Refreshing kid data for:', kidId);
+      
+      // Check if kidId is valid
+      if (!kidId || kidId === 'undefined') {
+        console.error('Invalid kidId:', kidId);
+        return;
+      }
+      
       const response = await axios.get(`${apiUrl}/kids/${kidId}`, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -89,6 +119,7 @@ const KidDashboard = () => {
       }
     } catch (error) {
       console.error('Error refreshing kid data:', error);
+      console.error('Error details:', error.response?.data);
     }
   };
 
@@ -98,11 +129,17 @@ const KidDashboard = () => {
     console.log('Completing task:', taskId);
     setCompletingTask(taskId);
     const kidToken = localStorage.getItem('kidToken');
+    
+    console.log('Kid token:', kidToken ? 'exists' : 'missing');
+    console.log('Kid data:', kidData);
+    console.log('API URL:', apiUrl);
+    console.log('Full URL:', `${apiUrl}/kids/tasks/${taskId}/complete`);
 
     try {
       const response = await axios.patch(`${apiUrl}/kids/tasks/${taskId}/complete`, {}, {
         headers: {
-          Authorization: `Bearer ${kidToken}`
+          Authorization: `Bearer ${kidToken}`,
+          'Content-Type': 'application/json'
         }
       });
 
@@ -116,7 +153,7 @@ const KidDashboard = () => {
         setTasks(prevTasks => 
           prevTasks.map(task => 
             task._id === taskId 
-              ? { ...task, isCompleted: true } 
+              ? { ...task, isCompleted: true, completed: true } 
               : task
           )
         );
@@ -136,6 +173,8 @@ const KidDashboard = () => {
       }
     } catch (error) {
       console.error('Error completing task:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
       playSound("error");
     } finally {
       setCompletingTask(null);

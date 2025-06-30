@@ -23,7 +23,7 @@ const KidsLoginPage = () => {
       setCurrentCharacter((prev) => (prev + 1) % characters.length);
     }, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [characters.length]);
 
   const fetchKidsByParentEmail = async (email) => {
     setIsLoading(true);
@@ -537,7 +537,7 @@ const KidsLoginPage = () => {
           {step === 1 && (
             <>
               <p style={styles.subtitle}>
-                Enter your parent's email address first! 📧
+                Enter your parent&apos;s email address first! 📧
               </p>
               <form onSubmit={handleEmailSubmit}>
                 <input

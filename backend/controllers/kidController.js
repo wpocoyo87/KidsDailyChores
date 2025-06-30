@@ -40,20 +40,30 @@ export const createKid = asyncHandler(async (req, res) => {
 
 export const getKidById = asyncHandler(async (req, res) => {
   const { kidId } = req.params;
-  const { _id: userId, role } = req.user;
-
+  
   try {
     let kid;
     
-    if (role === 'kid') {
+    if (req.userRole === 'kid') {
       // Kids can only access their own data
+      if (!req.kid) {
+        return res.status(401).json({ error: "Kid authentication required" });
+      }
+      
       kid = await Kid.findById(kidId);
-      if (!kid || kid._id.toString() !== userId.toString()) {
+      if (!kid || kid._id.toString() !== req.kid._id.toString()) {
         return res.status(404).json({ error: "Kid not found" });
       }
-    } else {
+    } else if (req.userRole === 'parent') {
       // Parents can access their kids' data
+      if (!req.user) {
+        return res.status(401).json({ error: "Parent authentication required" });
+      }
+      
+      const { _id: userId } = req.user;
       kid = await getKidByIdService(userId, kidId);
+    } else {
+      return res.status(401).json({ error: "Authentication required" });
     }
     
     res.status(200).json({
@@ -146,6 +156,36 @@ export const getTasks = asyncHandler(async (req, res) => {
   console.log(`Fetching tasks for kidId: ${kidId}, date: ${date}`);
 
   try {
+    // Check authentication based on role
+    if (req.userRole === 'kid') {
+      if (!req.kid) {
+        return res.status(401).json({ 
+          success: false, 
+          error: "Kid authentication required" 
+        });
+      }
+      
+      // Kids can only access their own tasks
+      if (kidId !== req.kid._id.toString()) {
+        return res.status(403).json({ 
+          success: false, 
+          error: "Access denied" 
+        });
+      }
+    } else if (req.userRole === 'parent') {
+      if (!req.user) {
+        return res.status(401).json({ 
+          success: false, 
+          error: "Parent authentication required" 
+        });
+      }
+    } else {
+      return res.status(401).json({ 
+        success: false, 
+        error: "Authentication required" 
+      });
+    }
+
     // If no date provided, get all tasks for the kid
     if (!date) {
       const kid = await Kid.findById(kidId);
@@ -247,13 +287,42 @@ export const updateTaskCompletion = asyncHandler(async (req, res) => {
 // New function for kids to mark task as complete directly
 export const markTaskComplete = asyncHandler(async (req, res) => {
   const { taskId } = req.params;
-  const { _id: userId } = req.user;
 
   try {
-    console.log(`Kid ${userId} marking task ${taskId} as complete`);
+    let kidId;
+    
+    // Check authentication based on role
+    if (req.userRole === 'kid') {
+      if (!req.kid) {
+        return res.status(401).json({ 
+          success: false, 
+          message: "Kid authentication required" 
+        });
+      }
+      kidId = req.kid._id;
+    } else if (req.userRole === 'parent') {
+      if (!req.user) {
+        return res.status(401).json({ 
+          success: false, 
+          message: "Parent authentication required" 
+        });
+      }
+      // For parents, we would need kidId from request params, but this endpoint is mainly for kids
+      return res.status(403).json({ 
+        success: false, 
+        message: "This endpoint is for kids only" 
+      });
+    } else {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Authentication required" 
+      });
+    }
+
+    console.log(`Kid ${kidId} marking task ${taskId} as complete`);
 
     // Find the kid and task
-    const kid = await Kid.findOne({ _id: userId });
+    const kid = await Kid.findById(kidId);
     
     if (!kid) {
       return res.status(404).json({ 

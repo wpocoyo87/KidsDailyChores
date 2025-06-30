@@ -28,7 +28,12 @@ const KidDashboard = () => {
       const parsed = JSON.parse(savedKidData);
       setKidData(parsed);
       setPoints(parsed.totalPoints || 0);
+      
+      // Load tasks and refresh kid data
       loadKidTasks(parsed._id, kidToken);
+      
+      // Also fetch latest kid data to get updated points
+      refreshKidData(parsed._id, kidToken);
     } catch (error) {
       console.error('Error parsing kid data:', error);
       router.push('/kidsLogin');
@@ -45,23 +50,59 @@ const KidDashboard = () => {
 
   const loadKidTasks = async (kidId, token) => {
     try {
+      console.log('Loading tasks for kid:', kidId);
       const response = await axios.get(`${apiUrl}/kids/${kidId}/tasks`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
 
+      console.log('Tasks response:', response.data);
+      
       if (response.data.success) {
         setTasks(response.data.tasks || []);
+        console.log('Tasks loaded:', response.data.tasks?.length || 0);
+        
+        // Update points from response if available
+        if (response.data.kid && response.data.kid.totalPoints !== undefined) {
+          console.log('Updating points from tasks response:', response.data.kid.totalPoints);
+          setPoints(response.data.kid.totalPoints);
+        }
       }
     } catch (error) {
       console.error('Error loading tasks:', error);
     }
   };
 
+  const refreshKidData = async (kidId, token) => {
+    try {
+      console.log('Refreshing kid data for:', kidId);
+      const response = await axios.get(`${apiUrl}/kids/${kidId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      console.log('Kid data response:', response.data);
+      
+      if (response.data && response.data.totalPoints !== undefined) {
+        console.log('Setting points from kid data:', response.data.totalPoints);
+        setPoints(response.data.totalPoints);
+        
+        // Update localStorage with latest data
+        const updatedKidData = { ...kidData, totalPoints: response.data.totalPoints };
+        setKidData(updatedKidData);
+        localStorage.setItem('kidData', JSON.stringify(updatedKidData));
+      }
+    } catch (error) {
+      console.error('Error refreshing kid data:', error);
+    }
+  };
+
   const handleTaskComplete = async (taskId) => {
     if (completingTask) return; // Prevent double clicks
 
+    console.log('Completing task:', taskId);
     setCompletingTask(taskId);
     const kidToken = localStorage.getItem('kidToken');
 
@@ -71,6 +112,8 @@ const KidDashboard = () => {
           Authorization: `Bearer ${kidToken}`
         }
       });
+
+      console.log('Task complete response:', response.data);
 
       if (response.data.success) {
         // Play success sound
@@ -87,6 +130,7 @@ const KidDashboard = () => {
 
         // Update points
         const updatedPoints = response.data.kid.totalPoints;
+        console.log('Updated points from task completion:', updatedPoints);
         setPoints(updatedPoints);
         
         // Update localStorage

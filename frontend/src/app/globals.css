@@ -2,6 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Force Comic Sans MS for all elements */
+* {
+  font-family: "Comic Sans MS" !important;
+}
+
+html {
+  font-family: "Comic Sans MS" !important;
+}
+
+body {
+  font-family: "Comic Sans MS" !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Comic Sans MS" !important;
+}
+
+p, span, div, a, button, input, textarea, select, label {
+  font-family: "Comic Sans MS" !important;
+}
+
+/* Override any CSS variable font families */
+:root {
+  --font-family: "Comic Sans MS" !important;
+  --font-family-base: "Comic Sans MS" !important;
+  --font-family-heading: "Comic Sans MS" !important;
+}
+
+/* Tailwind CSS overrides */
+@layer base {
+  * {
+    font-family: "Comic Sans MS" !important;
+  }
+  
+  html {
+    font-family: "Comic Sans MS" !important;
+  }
+  
+  body {
+    font-family: "Comic Sans MS" !important;
+  }
+}
+
+/* Override Tailwind utilities */
+@layer utilities {
+  .font-sans {
+    font-family: "Comic Sans MS" !important;
+  }
+  
+  .font-serif {
+    font-family: "Comic Sans MS" !important;
+  }
+  
+  .font-mono {
+    font-family: "Comic Sans MS" !important;
+  }
+}
+
+/* Additional overrides for specific components */
+[style*="font-family"] {
+  font-family: "Comic Sans MS" !important;
+}
+
+.react-datepicker__input-container input {
+  font-family: "Comic Sans MS" !important;
+}
+
+.react-datepicker {
+  font-family: "Comic Sans MS" !important;
+}
+
+.react-datepicker * {
+  font-family: "Comic Sans MS" !important;
+}
+
 :root {
   --max-width: 1100px;
   --border-radius: 12px;

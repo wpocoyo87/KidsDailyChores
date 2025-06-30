@@ -16,14 +16,19 @@ if (process.env.NODE_ENV !== 'production') {
 const app = express();
 connectDB();
 
+const allowedOrigins = [
+  'https://kids-daily-chores.vercel.app',
+  'https://kids-daily-chores-git-safwan-khatys-projects.vercel.app',
+  'http://localhost:3000',
+];
+
 app.use(bodyParser.json());
 app.use(express.json());
 
 // Configure CORS
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (origin === 'https://kids-daily-chores.vercel.app' || origin === 'http://localhost:3000') {
+    if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
     return callback(new Error('Not allowed by CORS'));

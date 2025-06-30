@@ -17,6 +17,8 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   kids: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Kid' }],
+  role: { type: String, enum: ['parent'], default: 'parent' },
+  isActive: { type: Boolean, default: true },
 });
 
 // Encrypt password before saving user

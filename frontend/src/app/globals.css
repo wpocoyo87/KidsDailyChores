@@ -1,10 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Force Comic Sans MS for all elements */
+* {
+  font-family: "Comic Sans MS" !important;
+}
+
+html {
+  font-family: "Comic Sans MS" !important;
+}
+
+body {
+  font-family: "Comic Sans MS" !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Comic Sans MS" !important;
+}
+
+p, span, div, a, button, input, textarea, select, label {
+  font-family: "Comic Sans MS" !important;
+}
+
+/* Override any CSS variable font families */
+:root {
+  --font-family: "Comic Sans MS" !important;
+  --font-family-base: "Comic Sans MS" !important;
+  --font-family-heading: "Comic Sans MS" !important;
+}
+
+/* Tailwind CSS overrides */
+@layer base {
+  * {
+    font-family: "Comic Sans MS" !important;
+  }
+  
+  html {
+    font-family: "Comic Sans MS" !important;
+  }
+  
+  body {
+    font-family: "Comic Sans MS" !important;
+  }
+}
+
+/* Override Tailwind utilities */
+@layer utilities {
+  .font-sans {
+    font-family: "Comic Sans MS" !important;
+  }
+  
+  .font-serif {
+    font-family: "Comic Sans MS" !important;
+  }
+  
+  .font-mono {
+    font-family: "Comic Sans MS" !important;
+  }
+}
+
+/* Additional overrides for specific components */
+[style*="font-family"] {
+  font-family: "Comic Sans MS" !important;
+}
+
+.react-datepicker__input-container input {
+  font-family: "Comic Sans MS" !important;
+}
+
+.react-datepicker {
+  font-family: "Comic Sans MS" !important;
+}
+
+.react-datepicker * {
+  font-family: "Comic Sans MS" !important;
+}
+
 :root {
   --max-width: 1100px;
   --border-radius: 12px;
-  --font-mono: "Comic Sans MS, cursive", "Nunito", ui-monospace, Menlo, Monaco,
-    "Cascadia Mono", "Segoe UI Mono", "Roboto Mono", "Oxygen Mono",
-    "Ubuntu Monospace", "Source Code Pro", "Fira Mono", "Droid Sans Mono",
-    "Courier New", monospace;
+  --font-mono: "Comic Sans MS";
 
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -78,6 +154,7 @@
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  font-family: "Comic Sans MS" !important;
 }
 
 html,
@@ -92,11 +169,28 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
-  font-family: "Comic Sans MS, cursive", "Nunito", -apple-system,
-    BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans,
-    Droid Sans, Helvetica Neue, sans-serif;
+  font-family: "Comic Sans MS" !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Force Comic Sans MS on ALL elements */
+* {
+  font-family: "Comic Sans MS" !important;
+}
+
+/* Ensure all text elements use Comic Sans MS */
+h1, h2, h3, h4, h5, h6, p, div, span, a, button, input, textarea, select, label, li, td, th {
+  font-family: "Comic Sans MS" !important;
+}
+
+/* Force on all possible selectors */
+body *, 
+html *, 
+#__next *, 
+[data-reactroot] *,
+.next-root * {
+  font-family: "Comic Sans MS" !important;
 }
 
 body {
@@ -114,4 +208,151 @@ a {
   html {
     color-scheme: dark;
   }
+}
+
+input, textarea, select, option {
+  color: #000 !important;
+  background-color: #fff !important;
+  font-family: "Comic Sans MS" !important;
+}
+
+/* Placeholder styling - black text on white background */
+input::placeholder, textarea::placeholder {
+  color: #000 !important;
+  background-color: transparent !important;
+  font-family: "Comic Sans MS" !important;
+  opacity: 1;
+}
+
+/* Better placeholder styling for different browsers */
+input::-webkit-input-placeholder {
+  color: #000 !important;
+  background-color: transparent !important;
+  font-family: "Comic Sans MS" !important;
+}
+
+input::-moz-placeholder {
+  color: #000 !important;
+  background-color: transparent !important;
+  font-family: "Comic Sans MS" !important;
+  opacity: 1;
+}
+
+input:-ms-input-placeholder {
+  color: #000 !important;
+  background-color: transparent !important;
+  font-family: "Comic Sans MS" !important;
+}
+
+input:-moz-placeholder {
+  color: #000 !important;
+  background-color: transparent !important;
+  font-family: "Comic Sans MS" !important;
+  opacity: 1;
+}
+
+textarea::-webkit-input-placeholder {
+  color: #000 !important;
+  background-color: transparent !important;
+  font-family: "Comic Sans MS" !important;
+}
+
+textarea::-moz-placeholder {
+  color: #000 !important;
+  background-color: transparent !important;
+  font-family: "Comic Sans MS" !important;
+  opacity: 1;
+}
+
+textarea:-ms-input-placeholder {
+  color: #000 !important;
+  background-color: transparent !important;
+  font-family: "Comic Sans MS" !important;
+}
+
+textarea:-moz-placeholder {
+  color: #000 !important;
+  background-color: transparent !important;
+  font-family: "Comic Sans MS" !important;
+  opacity: 1;
+}
+
+/* Ensure buttons and interactive elements use Comic Sans MS */
+button, .btn, .button {
+  font-family: "Comic Sans MS" !important;
+}
+
+/* Apply Comic Sans MS to all Next.js and React components */
+[class*="component"], [class*="Component"], [id*="component"], [id*="Component"] {
+  font-family: "Comic Sans MS" !important;
+}
+
+/* Override any possible framework fonts */
+.MuiTypography-root,
+.ant-typography,
+.chakra-text,
+.bp3-text,
+.ui.text {
+  font-family: "Comic Sans MS" !important;
+}
+
+/* React DatePicker specific */
+.react-datepicker,
+.react-datepicker *,
+.react-datepicker__input-container input,
+.react-datepicker__header,
+.react-datepicker__day,
+.react-datepicker__day-name,
+.react-datepicker__month,
+.react-datepicker__year {
+  font-family: "Comic Sans MS" !important;
+}
+
+/* Mobile-specific font overrides */
+@media screen and (max-width: 768px) {
+  * {
+    font-family: "Comic Sans MS", cursive, sans-serif !important;
+    -webkit-font-family: "Comic Sans MS", cursive, sans-serif !important;
+  }
+  
+  body, html {
+    font-family: "Comic Sans MS", cursive, sans-serif !important;
+    -webkit-font-family: "Comic Sans MS", cursive, sans-serif !important;
+  }
+  
+  h1, h2, h3, h4, h5, h6, p, div, span, a, button, input, textarea, select, label {
+    font-family: "Comic Sans MS", cursive, sans-serif !important;
+    -webkit-font-family: "Comic Sans MS", cursive, sans-serif !important;
+  }
+}
+
+/* iOS Safari specific */
+@supports (-webkit-touch-callout: none) {
+  * {
+    font-family: "Comic Sans MS", cursive, sans-serif !important;
+    -webkit-font-family: "Comic Sans MS", cursive, sans-serif !important;
+  }
+}
+
+/* Android Chrome specific */
+@media screen and (-webkit-min-device-pixel-ratio: 1) {
+  * {
+    font-family: "Comic Sans MS", cursive, sans-serif !important;
+    -webkit-font-family: "Comic Sans MS", cursive, sans-serif !important;
+  }
+}
+
+/* Font loading to ensure Comic Sans MS is available */
+@font-face {
+  font-family: 'Comic Sans MS Fallback';
+  src: local('Comic Sans MS'), local('ComicSansMS'), local('Comic Sans'), 
+       local('Chalkduster'), local('Bradley Hand'), 
+       local('Marker Felt'), local('Kristen ITC');
+  font-display: swap;
+}
+
+/* Use the fallback font family as primary */
+* {
+  font-family: "Comic Sans MS", "Comic Sans MS Fallback", "Chalkduster", "Bradley Hand", 
+               "Marker Felt", "Kristen ITC", cursive, fantasy, sans-serif !important;
 }

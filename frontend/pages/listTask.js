@@ -13,12 +13,29 @@ const ListTaskPage = () => {
   const router = useRouter();
   const [token, setToken] = useState(null);
   const [selectedKidStr, setSelectedKidStr] = useState(null);
+  const [userRole, setUserRole] = useState(null); // 'kid' or 'parent'
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setToken(localStorage.getItem("token"));
-      setSelectedKidStr(localStorage.getItem("selectedKid"));
+      // Check if user is a kid (kidToken exists) or parent (token exists)
+      const kidToken = localStorage.getItem("kidToken");
+      const parentToken = localStorage.getItem("token");
+      
+      if (kidToken) {
+        // Kid is logged in
+        setToken(kidToken);
+        setUserRole('kid');
+        const kidData = localStorage.getItem("kidData");
+        if (kidData) {
+          setSelectedKidStr(kidData);
+        }
+      } else if (parentToken) {
+        // Parent is logged in
+        setToken(parentToken);
+        setUserRole('parent');
+        setSelectedKidStr(localStorage.getItem("selectedKid"));
+      }
     }
   }, []);
 
@@ -28,19 +45,35 @@ const ListTaskPage = () => {
       try {
         let selectedKidStrValue = selectedKidStr;
         let tokenValue = token;
+        
         if (typeof window !== "undefined") {
-          selectedKidStrValue = localStorage.getItem("selectedKid");
-          tokenValue = localStorage.getItem("token");
+          // Check if user is a kid (kidToken exists) or parent (token exists)
+          const kidToken = localStorage.getItem("kidToken");
+          const parentToken = localStorage.getItem("token");
+          
+          if (kidToken) {
+            // Kid is logged in
+            tokenValue = kidToken;
+            const kidData = localStorage.getItem("kidData");
+            selectedKidStrValue = kidData;
+          } else if (parentToken) {
+            // Parent is logged in
+            tokenValue = parentToken;
+            selectedKidStrValue = localStorage.getItem("selectedKid");
+          }
         }
+        
         if (!selectedKidStrValue || !tokenValue) {
           console.error("Selected kid or token not found in localStorage");
           return;
         }
+        
         const selectedKid = JSON.parse(selectedKidStrValue);
         if (!selectedKid._id) {
           console.error("Selected kid id is missing in localStorage");
           return;
         }
+        
         const kidResponse = await axios.get(
           `${apiUrl}/kids/${selectedKid._id}`,
           {
@@ -78,11 +111,19 @@ const ListTaskPage = () => {
           },
         }
       );
-      if (taskResponse.data.length === 0) {
+      
+      // Handle the new API response format
+      if (taskResponse.data.success) {
+        const tasks = taskResponse.data.tasks || [];
+        if (tasks.length === 0) {
+          setNoTasks(true);
+          setTasks([]);
+        } else {
+          setTasks(tasks);
+        }
+      } else {
         setNoTasks(true);
         setTasks([]);
-      } else {
-        setTasks(taskResponse.data);
       }
     } catch (error) {
       if (error.response && error.response.status === 404) {
@@ -98,14 +139,25 @@ const ListTaskPage = () => {
 
   const handleToggleComplete = async (index) => {
     const updatedTasks = [...tasks];
-    updatedTasks[index].completed = !updatedTasks[index].completed;
+    const newCompletedStatus = !(updatedTasks[index].completed || updatedTasks[index].isCompleted);
+    updatedTasks[index].completed = newCompletedStatus;
+    updatedTasks[index].isCompleted = newCompletedStatus;
     setTasks(updatedTasks);
     
     try {
       let tokenValue = token;
       if (typeof window !== "undefined") {
-        tokenValue = localStorage.getItem("token");
+        // Check if user is a kid (kidToken exists) or parent (token exists)
+        const kidToken = localStorage.getItem("kidToken");
+        const parentToken = localStorage.getItem("token");
+        
+        if (kidToken) {
+          tokenValue = kidToken;
+        } else if (parentToken) {
+          tokenValue = parentToken;
+        }
       }
+      
       if (!kid || !kid._id) {
         console.error("Kid ID is missing or undefined");
         return;
@@ -114,7 +166,7 @@ const ListTaskPage = () => {
       // Update task completion status - backend will automatically calculate points
       const response = await axios.put(
         `${apiUrl}/kids/${kid._id}/tasks/${updatedTasks[index]._id}/completion`,
-        { completed: updatedTasks[index].completed },
+        { completed: newCompletedStatus },
         {
           headers: {
             Authorization: `Bearer ${tokenValue}`,
@@ -131,7 +183,8 @@ const ListTaskPage = () => {
     } catch (error) {
       console.error("Error updating task:", error);
       // Revert the task completion status on error
-      updatedTasks[index].completed = !updatedTasks[index].completed;
+      updatedTasks[index].completed = !newCompletedStatus;
+      updatedTasks[index].isCompleted = !newCompletedStatus;
       setTasks(updatedTasks);
     }
   };
@@ -141,8 +194,17 @@ const ListTaskPage = () => {
     try {
       let tokenValue = token;
       if (typeof window !== "undefined") {
-        tokenValue = localStorage.getItem("token");
+        // Check if user is a kid (kidToken exists) or parent (token exists)
+        const kidToken = localStorage.getItem("kidToken");
+        const parentToken = localStorage.getItem("token");
+        
+        if (kidToken) {
+          tokenValue = kidToken;
+        } else if (parentToken) {
+          tokenValue = parentToken;
+        }
       }
+      
       if (!kid || !kid._id) {
         console.error("Kid ID is missing or undefined");
         return;
@@ -158,8 +220,9 @@ const ListTaskPage = () => {
       const updatedTasks = [...tasks];
       updatedTasks.splice(index, 1);
       setTasks(updatedTasks);
-      const updatedPoints = await updateStarsForKid(kid._id, updatedTasks, tokenValue);
-      setKid((prevKid) => ({ ...prevKid, points: updatedPoints }));
+      
+      // Reload tasks to get updated points from backend
+      await loadTasks(kid._id, selectedDate, tokenValue);
     } catch (error) {
       console.error("Error deleting task:", error);
     }
@@ -176,7 +239,18 @@ const ListTaskPage = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
+      let tokenValue = token;
+      if (typeof window !== "undefined") {
+        // Check if user is a kid (kidToken exists) or parent (token exists)
+        const kidToken = localStorage.getItem("kidToken");
+        const parentToken = localStorage.getItem("token");
+        
+        if (kidToken) {
+          tokenValue = kidToken;
+        } else if (parentToken) {
+          tokenValue = parentToken;
+        }
+      }
 
       // Complete all tasks - backend will automatically calculate total points
       const promises = tasks.map((task) =>
@@ -185,7 +259,7 @@ const ListTaskPage = () => {
           { completed: true },
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${tokenValue}`,
             },
           }
         )
@@ -203,7 +277,7 @@ const ListTaskPage = () => {
         console.log(`All tasks completed! Total points: ${lastResponse.data.totalPoints}`);
       }
 
-      setTasks(tasks.map((task) => ({ ...task, completed: true })));
+      setTasks(tasks.map((task) => ({ ...task, completed: true, isCompleted: true })));
       router.push(`/completedTask?kidName=${kid.name}`);
     } catch (error) {
       console.error("Error completing all tasks:", error);
@@ -219,17 +293,71 @@ const ListTaskPage = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{
+        ...styles.body,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontFamily: 'Comic Sans MS !important'
+      }}>
+        <div style={{
+          textAlign: 'center',
+          backgroundColor: '#fff',
+          padding: '40px',
+          borderRadius: '20px',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{
+            fontSize: '3rem',
+            marginBottom: '20px'
+          }}>⏳</div>
+          <div style={{
+            fontSize: '1.5rem',
+            color: '#2d3436',
+            fontFamily: 'Comic Sans MS !important'
+          }}>Loading your tasks...</div>
+        </div>
+      </div>
+    );
   }
 
   if (!kid) {
-    return <div>No kid data found.</div>;
+    return (
+      <div style={{
+        ...styles.body,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontFamily: 'Comic Sans MS !important'
+      }}>
+        <div style={{
+          textAlign: 'center',
+          backgroundColor: '#fff',
+          padding: '40px',
+          borderRadius: '20px',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{
+            fontSize: '3rem',
+            marginBottom: '20px'
+          }}>😕</div>
+          <div style={{
+            fontSize: '1.5rem',
+            color: '#2d3436',
+            fontFamily: 'Comic Sans MS !important'
+          }}>No kid data found.</div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div style={styles.body}>
       <div style={styles.container}>
-        <h1>Tasks for {kid.name}</h1>
+        <h1 style={{fontFamily: 'Comic Sans MS !important', color: '#2d3436'}}>
+          {userRole === 'kid' ? `My Tasks! 📝` : `Tasks for ${kid.name}`}
+        </h1>
         <img
           src={kid.selectedAvatar || "/images/default-avatar.png"}
           alt={`Avatar of ${kid.name}`}
@@ -240,7 +368,9 @@ const ListTaskPage = () => {
         />
         <div style={styles.starsContainer}>
           <i className="fas fa-star" style={styles.starIcon}></i>
-          <p style={styles.starsText}>Star Accumulated Point: {kid.points}</p>
+          <p style={{...styles.starsText, fontFamily: 'Comic Sans MS !important'}}>
+            {userRole === 'kid' ? `⭐ My Stars: ${kid.points || kid.totalPoints || 0}` : `Star Accumulated Point: ${kid.points || kid.totalPoints || 0}`}
+          </p>
         </div>
         <div style={styles.datePickerContainer}>
           <DatePicker
@@ -251,42 +381,62 @@ const ListTaskPage = () => {
           />
         </div>
         {noTasks ? (
-          <div>No tasks assigned for the selected date.</div>
+          <div style={{
+            textAlign: 'center',
+            padding: '30px',
+            fontSize: '1.3rem',
+            color: '#7f8c8d',
+            fontFamily: 'Comic Sans MS !important'
+          }}>
+            {userRole === 'kid' ? 
+              '🎉 Awesome! No tasks assigned for today!' : 
+              'No tasks assigned for the selected date.'
+            }
+          </div>
         ) : (
           <ul style={styles.taskList}>
             {tasks.map((task, index) => (
               <li key={index} style={styles.taskItem}>
                 <input
                   type="checkbox"
-                  checked={task.completed || false}
+                  checked={task.completed || task.isCompleted || false}
                   onChange={() => handleToggleComplete(index)}
                 />
                 <img src={task.image} alt="Task" style={styles.taskImage} />
-                {task.description}
-                <button onClick={() => handleDeleteTask(index)}>🗑️</button>
+                <span style={{fontFamily: 'Comic Sans MS !important', flex: 1}}>
+                  {task.task || task.description}
+                </span>
+                {userRole === 'parent' && (
+                  <button onClick={() => handleDeleteTask(index)}>🗑️</button>
+                )}
               </li>
             ))}
           </ul>
         )}
-        <button onClick={handleAddTask} style={styles.addTaskBtn}>
-          Add Task
-        </button>
+        {userRole === 'parent' && (
+          <button onClick={handleAddTask} style={styles.addTaskBtn}>
+            Add Task
+          </button>
+        )}
         <button
           onClick={handleCompleteAllTasks}
           style={{
             ...styles.completeBtn,
-            opacity: tasks.every((task) => task.completed) ? 1 : 0.5,
-            cursor: tasks.every((task) => task.completed)
+            opacity: tasks.some((task) => !(task.completed || task.isCompleted)) ? 1 : 0.5,
+            cursor: tasks.some((task) => !(task.completed || task.isCompleted))
               ? "pointer"
               : "not-allowed",
+            fontFamily: 'Comic Sans MS !important'
           }}
-          disabled={!tasks.every((task) => task.completed)}
+          disabled={!tasks.some((task) => !(task.completed || task.isCompleted))}
         >
-          Complete All
+          {userRole === 'kid' ? '🎉 Finish All Tasks!' : 'Complete All'}
         </button>
-        <button onClick={handleKidChange} style={styles.changeKidBtn}>
-          Change Kid
-        </button>
+        {userRole === 'parent' && (
+          <button onClick={handleKidChange} style={styles.changeKidBtn}>
+            Change Kid
+          </button>
+        )}
       </div>
     </div>
   );
@@ -294,7 +444,7 @@ const ListTaskPage = () => {
 
 const styles = {
   body: {
-    fontFamily: "Comic Sans MS",
+    fontFamily: "Comic Sans MS !important",
     backgroundColor: "rgb(var(--background-start-rgb))",
     color: "rgb(var(--foreground-rgb))",
     minHeight: "100vh",
@@ -306,6 +456,7 @@ const styles = {
     backgroundPosition: "center",
   },
   container: {
+    fontFamily: "Comic Sans MS !important",
     textAlign: "center",
     backgroundColor: "#fff",
     padding: "20px",
@@ -332,6 +483,7 @@ const styles = {
   starsText: {
     margin: 0,
     fontSize: "1.2rem",
+    fontFamily: "Comic Sans MS !important",
   },
   datePickerContainer: {
     display: "flex",
@@ -345,6 +497,7 @@ const styles = {
     backgroundColor: "#e3f2fd", // Warna biru muda
     color: "#0d47a1", // Warna biru
     textAlign: "center", // Menyelaraskan teks di tengah
+    fontFamily: "Comic Sans MS !important",
   },
   taskList: {
     listStyleType: "none",
@@ -357,6 +510,7 @@ const styles = {
     padding: "10px",
     border: "1px solid #ccc",
     borderRadius: "4px",
+    fontFamily: "Comic Sans MS !important",
   },
   taskImage: {
     width: "50px",
@@ -373,6 +527,8 @@ const styles = {
     border: "none",
     borderRadius: "8px", // Lebih melengkung
     cursor: "pointer",
+    fontFamily: "Comic Sans MS !important",
+    fontSize: "16px"
   },
   completeBtn: {
     display: "block",
@@ -384,6 +540,8 @@ const styles = {
     border: "none",
     borderRadius: "8px", // Lebih melengkung
     cursor: "pointer",
+    fontFamily: "Comic Sans MS !important",
+    fontSize: "16px"
   },
   changeKidBtn: {
     display: "block",
@@ -395,6 +553,8 @@ const styles = {
     border: "none",
     borderRadius: "8px", // Lebih melengkung
     cursor: "pointer",
+    fontFamily: "Comic Sans MS !important",
+    fontSize: "16px"
   },
 };
 

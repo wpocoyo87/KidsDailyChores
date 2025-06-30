@@ -46,26 +46,19 @@ const KidDashboard = () => {
 
     setIsLoading(false);
     return () => clearInterval(interval);
-  }, [router, emojis.length]);
-
-  const loadKidTasks = async (kidId, token) => {
+  }, [router, emojis.length]);  const loadKidTasks = async (kidId, token) => {
     try {
-      console.log('Loading tasks for kid:', kidId);
       const response = await axios.get(`${apiUrl}/kids/${kidId}/tasks`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
 
-      console.log('Tasks response:', response.data);
-      
       if (response.data.success) {
         setTasks(response.data.tasks || []);
-        console.log('Tasks loaded:', response.data.tasks?.length || 0);
         
         // Update points from response if available
         if (response.data.kid && response.data.kid.totalPoints !== undefined) {
-          console.log('Updating points from tasks response:', response.data.kid.totalPoints);
           setPoints(response.data.kid.totalPoints);
         }
       }
@@ -229,8 +222,8 @@ const KidDashboard = () => {
     return null;
   }
 
-  const pendingTasks = tasks.filter(task => !task.isCompleted);
-  const completedTasks = tasks.filter(task => task.isCompleted);
+  const pendingTasks = tasks.filter(task => !task.isCompleted && !task.completed);
+  const completedTasks = tasks.filter(task => task.isCompleted || task.completed);
 
   return (
     <>

@@ -10,6 +10,7 @@ import {
   getTasks,
   deleteTask,
   updateTaskCompletion,
+  markTaskComplete,
   addKid,
   setKidPin,
   removeKidPin,
@@ -38,6 +39,12 @@ router.route("/:kidId/tasks/:taskId").delete(protect, parentOnly, (req, res) => 
 router.route("/:kidId/tasks/:taskId/completion").put(protect, parentOrKid, (req, res) => {
   console.log("PUT /api/kids/:kidId/tasks/:taskId/completion route hit");
   updateTaskCompletion(req, res);
+});
+
+// Route for kids to mark tasks as complete
+router.route("/tasks/:taskId/complete").patch(protect, parentOrKid, (req, res) => {
+  console.log("PATCH /api/kids/tasks/:taskId/complete route hit");
+  markTaskComplete(req, res);
 });
 
 router

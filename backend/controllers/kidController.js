@@ -9,6 +9,7 @@ import {
   updateTaskCompletionService,
 } from "../services/kidService.js";
 import { addKidService } from "../services/userService.js";
+import Kid from "../models/KidModel.js";
 import asyncHandler from "express-async-handler";
 
 console.log("kidController.js loaded");
@@ -39,11 +40,31 @@ export const createKid = asyncHandler(async (req, res) => {
 
 export const getKidById = asyncHandler(async (req, res) => {
   const { kidId } = req.params;
-  const { _id: userId } = req.user;
+  const { _id: userId, role } = req.user;
 
   try {
-    const kid = await getKidByIdService(userId, kidId);
-    res.status(200).json(kid);
+    let kid;
+    
+    if (role === 'kid') {
+      // Kids can only access their own data
+      kid = await Kid.findById(kidId);
+      if (!kid || kid._id.toString() !== userId.toString()) {
+        return res.status(404).json({ error: "Kid not found" });
+      }
+    } else {
+      // Parents can access their kids' data
+      kid = await getKidByIdService(userId, kidId);
+    }
+    
+    res.status(200).json({
+      _id: kid._id,
+      name: kid.name,
+      gender: kid.gender,
+      birthDate: kid.birthDate,
+      selectedAvatar: kid.selectedAvatar,
+      totalPoints: kid.totalPoints || 0,
+      tasks: kid.tasks
+    });
   } catch (error) {
     console.error("Error fetching kid:", error);
     if (!res.headersSent) {
@@ -125,19 +146,51 @@ export const getTasks = asyncHandler(async (req, res) => {
   console.log(`Fetching tasks for kidId: ${kidId}, date: ${date}`);
 
   try {
+    // If no date provided, get all tasks for the kid
+    if (!date) {
+      const kid = await Kid.findById(kidId);
+      if (!kid) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "Kid not found" 
+        });
+      }
+
+      console.log(`All tasks found: ${kid.tasks.length}`);
+      return res.status(200).json({
+        success: true,
+        tasks: kid.tasks,
+        kid: {
+          _id: kid._id,
+          name: kid.name,
+          totalPoints: kid.totalPoints || 0
+        }
+      });
+    }
+
+    // If date provided, filter by date
     const tasks = await getTasksService(kidId, date);
     console.log(`Tasks found: ${tasks.length}`);
 
     if (tasks.length > 0) {
-      res.status(200).json(tasks);
+      res.status(200).json({
+        success: true,
+        tasks: tasks
+      });
     } else {
       console.log("Tasks not found");
-      res.status(404).json({ error: "Tasks not found" });
+      res.status(404).json({ 
+        success: false, 
+        error: "Tasks not found" 
+      });
     }
   } catch (error) {
     console.error("Error fetching tasks:", error);
     if (!res.headersSent) {
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({ 
+        success: false, 
+        error: "Internal server error" 
+      });
     }
   }
 });
@@ -191,6 +244,68 @@ export const updateTaskCompletion = asyncHandler(async (req, res) => {
   }
 });
 
+// New function for kids to mark task as complete directly
+export const markTaskComplete = asyncHandler(async (req, res) => {
+  const { taskId } = req.params;
+  const { _id: userId } = req.user;
+
+  try {
+    console.log(`Kid ${userId} marking task ${taskId} as complete`);
+
+    // Find the kid and task
+    const kid = await Kid.findOne({ _id: userId });
+    
+    if (!kid) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Kid not found" 
+      });
+    }
+
+    const task = kid.tasks.id(taskId);
+    if (!task) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Task not found" 
+      });
+    }
+
+    if (task.isCompleted) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Task already completed" 
+      });
+    }
+
+    // Mark task as complete
+    task.isCompleted = true;
+    task.completedAt = new Date();
+
+    // Update total points
+    const taskPoints = task.points || 10;
+    kid.totalPoints = (kid.totalPoints || 0) + taskPoints;
+
+    await kid.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Task completed successfully!",
+      task: task,
+      kid: {
+        _id: kid._id,
+        name: kid.name,
+        totalPoints: kid.totalPoints
+      }
+    });
+  } catch (error) {
+    console.error("Error marking task complete:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Error completing task" 
+    });
+  }
+});
+
 export const addKid = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const kidData = req.body;
@@ -203,5 +318,240 @@ export const addKid = asyncHandler(async (req, res) => {
   } catch (error) {
     console.error("Error adding kid:", error);
     res.status(500).json({ message: error.message });
+  }
+});
+
+export const getKidsByParentEmail = asyncHandler(async (req, res) => {
+  const { parentEmail } = req.body;
+  console.log(`Getting kids for parent email: ${parentEmail}`);
+
+  try {
+    if (!parentEmail) {
+      return res.status(400).json({
+        success: false,
+        error: "Parent email is required",
+      });
+    }
+
+    // First find the parent user by email
+    const User = (await import("../models/UserModel.js")).default;
+    const parent = await User.findOne({ email: parentEmail });
+
+    if (!parent) {
+      return res.status(404).json({
+        success: false,
+        error: "Parent not found with this email",
+      });
+    }
+
+    // Then find kids that belong to this parent and have PIN set
+    const Kid = (await import("../models/KidModel.js")).default;
+    const kids = await Kid.find({
+      userId: parent._id,
+      kidPin: { $exists: true, $ne: null },
+    }).select("-kidPin"); // Don't send PIN in response
+
+    console.log(`Found ${kids.length} kids for parent ${parentEmail}`);
+
+    res.status(200).json({
+      success: true,
+      kids: kids.map((kid) => ({
+        ...kid.toObject(),
+        hasPinSet: kid.kidPin ? true : false,
+      })),
+    });
+  } catch (error) {
+    console.error("Error getting kids by parent email:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to get kids data",
+    });
+  }
+});
+
+export const setKidPin = asyncHandler(async (req, res) => {
+  const { kidId, pin } = req.body;
+  console.log(`Setting PIN for kid: ${kidId}`);
+
+  try {
+    if (!kidId || !pin) {
+      return res.status(400).json({
+        success: false,
+        error: "Kid ID and PIN are required",
+      });
+    }
+
+    if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+      return res.status(400).json({
+        success: false,
+        error: "PIN must be exactly 4 digits",
+      });
+    }
+
+    const Kid = (await import("../models/KidModel.js")).default;
+    const kid = await Kid.findById(kidId);
+
+    if (!kid) {
+      return res.status(404).json({
+        success: false,
+        error: "Kid not found",
+      });
+    }
+
+    // Verify that the kid belongs to the authenticated parent
+    if (kid.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        error: "Not authorized to set PIN for this kid",
+      });
+    }
+
+    await kid.setKidPin(pin);
+    console.log(`PIN set successfully for kid: ${kid.name}`);
+
+    res.status(200).json({
+      success: true,
+      message: "PIN set successfully",
+      kid: {
+        _id: kid._id,
+        name: kid.name,
+        hasPinSet: true,
+      },
+    });
+  } catch (error) {
+    console.error("Error setting kid PIN:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to set PIN",
+    });
+  }
+});
+
+export const kidLogin = asyncHandler(async (req, res) => {
+  const { kidId, pin } = req.body;
+  console.log(`Kid login attempt for: ${kidId}`);
+
+  try {
+    if (!kidId || !pin) {
+      return res.status(400).json({
+        success: false,
+        error: "Kid ID and PIN are required",
+      });
+    }
+
+    const Kid = (await import("../models/KidModel.js")).default;
+    const kid = await Kid.findById(kidId);
+
+    if (!kid) {
+      return res.status(404).json({
+        success: false,
+        error: "Kid not found",
+      });
+    }
+
+    if (!kid.kidPin) {
+      return res.status(400).json({
+        success: false,
+        error: "PIN not set for this kid",
+      });
+    }
+
+    const isValidPin = await kid.matchKidPin(pin);
+
+    if (!isValidPin) {
+      console.log(`Invalid PIN attempt for kid: ${kid.name}`);
+      return res.status(401).json({
+        success: false,
+        error: "Invalid PIN",
+      });
+    }
+
+    // Generate JWT token for kid
+    const jwt = (await import("jsonwebtoken")).default;
+    const token = jwt.sign(
+      {
+        id: kid._id,
+        role: "kid",
+        name: kid.name,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    console.log(`Kid login successful: ${kid.name}`);
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+      kid: {
+        _id: kid._id,
+        name: kid.name,
+        selectedAvatar: kid.selectedAvatar,
+        gender: kid.gender,
+        totalPoints: kid.totalPoints,
+      },
+    });
+  } catch (error) {
+    console.error("Error during kid login:", error);
+    res.status(500).json({
+      success: false,
+      error: "Login failed",
+    });
+  }
+});
+
+export const removeKidPin = asyncHandler(async (req, res) => {
+  const { kidId } = req.body;
+  console.log(`Removing PIN for kid: ${kidId}`);
+
+  try {
+    if (!kidId) {
+      return res.status(400).json({
+        success: false,
+        error: "Kid ID is required",
+      });
+    }
+
+    const Kid = (await import("../models/KidModel.js")).default;
+    const kid = await Kid.findById(kidId);
+
+    if (!kid) {
+      return res.status(404).json({
+        success: false,
+        error: "Kid not found",
+      });
+    }
+
+    // Verify that the kid belongs to the authenticated parent
+    if (kid.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        error: "Not authorized to remove PIN for this kid",
+      });
+    }
+
+    kid.kidPin = undefined;
+    kid.loginAttempts = 0;
+    kid.lockedUntil = undefined;
+    await kid.save();
+
+    console.log(`PIN removed successfully for kid: ${kid.name}`);
+
+    res.status(200).json({
+      success: true,
+      message: "PIN removed successfully",
+      kid: {
+        _id: kid._id,
+        name: kid.name,
+        hasPinSet: false,
+      },
+    });
+  } catch (error) {
+    console.error("Error removing kid PIN:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to remove PIN",
+    });
   }
 });

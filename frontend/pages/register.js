@@ -183,7 +183,7 @@ const RegisterPage = () => {
 
   const styles = {
     body: {
-      fontFamily: "'Comic Sans MS', 'Comic Sans', cursive",
+      fontFamily: "Comic Sans MS",
       backgroundColor: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)",
       color: "#2c3e50",
       minHeight: "100vh",
@@ -442,7 +442,7 @@ const RegisterPage = () => {
     <>
       <style jsx global>{`
         body, input, button, select, textarea, h1, h2, h3, h4, h5, h6, p, label, div, span {
-          font-family: 'Comic Sans MS', 'Comic Sans', cursive !important;
+          font-family: "Comic Sans MS";
         }
         
         @keyframes gradientShift {

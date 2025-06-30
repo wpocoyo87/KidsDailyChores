@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  font-family: "Gloria Hallelujah", cursive;
+  font-family: "Comic Sans MS";
   position: relative;
   overflow: hidden;
 }
@@ -36,7 +36,7 @@
 .h1 {
   font-size: 2.5rem;
   color: black;
-  font-family: "Gloria Hallelujah", cursive;
+  font-family: "Comic Sans MS";
 }
 
 .addItem {
@@ -293,7 +293,7 @@
 }
 
 .title, .subtitle, .sectionTitle, .registerText, .loginSection h2, .sectionDescription {
-  font-family: "Comic Sans MS", cursive !important;
+  font-family: "Comic Sans MS";
 }
 
 .title {
@@ -355,7 +355,7 @@
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: "Comic Sans MS", cursive;
+  font-family: "Comic Sans MS";
   position: relative;
   overflow: hidden;
 }

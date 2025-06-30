@@ -14,7 +14,7 @@ const Home = () => {
       setCurrentEmoji((prev) => (prev + 1) % emojis.length);
     }, 1500);
     return () => clearInterval(interval);
-  }, []);
+  }, [emojis.length]);
 
   const handleParentLogin = () => {
     router.push("/login");
@@ -47,7 +47,7 @@ const Home = () => {
           <div className={styles.loginSection}>
             <h2 className={styles.sectionTitle}>👨‍👩‍👧‍👦 For Parents</h2>
             <p className={styles.sectionDescription}>
-              Create tasks, track progress, and manage your kids' activities
+              Create tasks, track progress, and manage your kids&apos; activities
             </p>
             <button onClick={handleParentLogin} className={styles.parentButton}>
               🔐 Parent Login

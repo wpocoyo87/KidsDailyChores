@@ -47,7 +47,7 @@ const ChooseKidsPage = () => {
       setCurrentCharacter((prev) => (prev + 1) % characters.length);
     }, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [characters.length]);
 
   const handleSelection = (kid) => {
     setSelectedKid(kid);
@@ -485,7 +485,7 @@ const ChooseKidsPage = () => {
 
 const styles = {
   body: {
-    fontFamily: "Comic Sans MS, cursive",
+    fontFamily: "Comic Sans MS",
     minHeight: "100vh",
     background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
     display: "flex",
@@ -757,7 +757,7 @@ const styles = {
     fontWeight: "bold",
     cursor: "pointer",
     transition: "all 0.3s ease",
-    fontFamily: "Comic Sans MS, cursive",
+    fontFamily: "Comic Sans MS",
     boxShadow: "0 5px 15px rgba(102,126,234,0.4)",
   },
   
@@ -769,7 +769,7 @@ const styles = {
   },
   
   addButton: {
-    fontFamily: "Comic Sans MS, cursive",
+    fontFamily: "Comic Sans MS",
     padding: "15px 30px",
     backgroundColor: "#48bb78",
     color: "#fff",
@@ -783,7 +783,7 @@ const styles = {
   },
   
   logoutButton: {
-    fontFamily: "Comic Sans MS, cursive",
+    fontFamily: "Comic Sans MS",
     padding: "15px 30px",
     backgroundColor: "#e53e3e",
     color: "#fff",
@@ -867,7 +867,7 @@ const styles = {
     border: "2px solid #e2e8f0",
     fontSize: "18px",
     textAlign: "center",
-    fontFamily: "Comic Sans MS, cursive",
+    fontFamily: "Comic Sans MS",
     letterSpacing: "8px",
     outline: "none",
     transition: "border-color 0.3s ease",
@@ -909,7 +909,7 @@ const styles = {
     fontSize: "14px",
     fontWeight: "bold",
     cursor: "pointer",
-    fontFamily: "Comic Sans MS, cursive",
+    fontFamily: "Comic Sans MS",
     transition: "all 0.3s ease",
   },
   
@@ -922,7 +922,7 @@ const styles = {
     fontSize: "14px",
     fontWeight: "bold",
     cursor: "pointer",
-    fontFamily: "Comic Sans MS, cursive",
+    fontFamily: "Comic Sans MS",
     transition: "all 0.3s ease",
   },
 };

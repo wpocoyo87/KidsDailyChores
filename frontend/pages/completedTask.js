@@ -190,7 +190,7 @@ const CongratulationsPage = () => {
 
 const styles = {
   container: {
-    fontFamily: "Comic Sans MS, Comic Sans, cursive",
+    fontFamily: "Comic Sans MS",
     background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
     minHeight: "100vh",
     display: "flex",

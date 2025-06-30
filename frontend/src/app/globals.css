@@ -2,12 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap');
-
 :root {
   --max-width: 1100px;
   --border-radius: 12px;
-  --font-mono: "Comic Sans MS", "Comic Sans", "Comic Neue", cursive;
+  --font-mono: "Comic Sans MS";
 
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -95,7 +93,7 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
-  font-family: "Comic Sans MS", "Comic Sans", "Comic Neue", cursive;
+  font-family: "Comic Sans MS";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -119,5 +117,5 @@ a {
 
 input, textarea, input::placeholder, textarea::placeholder {
   color: #222 !important;
-  font-family: "Comic Sans MS", "Comic Sans", "Comic Neue", cursive !important;
+  font-family: "Comic Sans MS" !important;
 }

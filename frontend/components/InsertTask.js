@@ -186,16 +186,17 @@ const InsertTask = () => {
       zIndex: 1000,
     },
     datePicker: {
-      width: "60%",
-      padding: "12px 16px",
+      width: "200px",
+      padding: "10px 12px",
       border: "2px solid #e2e8f0",
-      borderRadius: "15px",
-      fontSize: "16px",
+      borderRadius: "12px",
+      fontSize: "14px",
       outline: "none",
       transition: "all 0.3s ease",
       fontFamily: "Comic Sans MS",
       position: "relative",
       zIndex: 1000,
+      boxSizing: "border-box",
     },
     imageGrid: {
       display: "grid",
@@ -564,7 +565,8 @@ const InsertTask = () => {
       <style jsx global>{`
         /* React DatePicker Custom Styles */
         .react-datepicker-wrapper {
-          width: 60%;
+          width: 200px;
+          max-width: 200px;
           position: relative;
           z-index: 1000 !important;
         }
@@ -573,6 +575,11 @@ const InsertTask = () => {
           width: 100%;
           position: relative;
           z-index: 1000 !important;
+        }
+        
+        .react-datepicker__input-container input {
+          width: 100% !important;
+          box-sizing: border-box;
         }
         
         .react-datepicker {

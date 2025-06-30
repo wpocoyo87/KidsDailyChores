@@ -58,9 +58,9 @@ const InsertTask = () => {
       minHeight: "100vh",
       background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
       padding: "20px",
-      fontFamily: "Gloria Hallelujah",
+      fontFamily: "Comic Sans MS",
       position: "relative",
-      overflow: "hidden",
+      overflow: "visible",
     },
     backgroundElements: {
       position: "absolute",
@@ -140,6 +140,8 @@ const InsertTask = () => {
       display: "flex",
       flexDirection: "column",
       gap: "20px",
+      position: "relative",
+      overflow: "visible",
     },
     rightColumn: {
       display: "flex",
@@ -155,6 +157,8 @@ const InsertTask = () => {
       backdropFilter: "blur(10px)",
       transition: "all 0.3s ease",
       animation: "slideInUp 0.6s ease-out",
+      position: "relative",
+      overflow: "visible",
     },
     cardHeader: {
       display: "flex",
@@ -178,6 +182,8 @@ const InsertTask = () => {
     },
     datePickerContainer: {
       width: "100%",
+      position: "relative",
+      zIndex: 100,
     },
     datePicker: {
       width: "100%",
@@ -187,7 +193,9 @@ const InsertTask = () => {
       fontSize: "16px",
       outline: "none",
       transition: "all 0.3s ease",
-      fontFamily: "Gloria Hallelujah",
+      fontFamily: "Comic Sans MS",
+      position: "relative",
+      zIndex: 100,
     },
     imageGrid: {
       display: "grid",
@@ -553,6 +561,103 @@ const InsertTask = () => {
 
   return (
     <div style={styles.container}>
+      <style jsx global>{`
+        /* React DatePicker Custom Styles */
+        .react-datepicker-wrapper {
+          width: 100%;
+          position: relative;
+          z-index: 100 !important;
+        }
+        
+        .react-datepicker__input-container {
+          width: 100%;
+          position: relative;
+          z-index: 100 !important;
+        }
+        
+        .react-datepicker {
+          font-family: "Comic Sans MS" !important;
+          border: 2px solid #e2e8f0 !important;
+          border-radius: 15px !important;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.3) !important;
+          z-index: 9999 !important;
+          position: absolute !important;
+        }
+        
+        .react-datepicker__header {
+          background-color: #667eea !important;
+          border-bottom: none !important;
+          border-radius: 13px 13px 0 0 !important;
+          padding-top: 10px !important;
+        }
+        
+        .react-datepicker__current-month {
+          color: white !important;
+          font-weight: bold !important;
+          font-size: 16px !important;
+          font-family: "Comic Sans MS" !important;
+        }
+        
+        .react-datepicker__day-name {
+          color: white !important;
+          font-weight: bold !important;
+          font-family: "Comic Sans MS" !important;
+        }
+        
+        .react-datepicker__day {
+          font-family: "Comic Sans MS" !important;
+          border-radius: 8px !important;
+          margin: 2px !important;
+        }
+        
+        .react-datepicker__day:hover {
+          background-color: #667eea !important;
+          color: white !important;
+        }
+        
+        .react-datepicker__day--selected {
+          background-color: #ff6b6b !important;
+          color: white !important;
+          font-weight: bold !important;
+        }
+        
+        .react-datepicker__day--today {
+          background-color: #ffd700 !important;
+          color: #333 !important;
+          font-weight: bold !important;
+        }
+        
+        .react-datepicker__navigation {
+          border: none !important;
+          background: none !important;
+        }
+        
+        .react-datepicker__navigation--previous {
+          border-right-color: white !important;
+        }
+        
+        .react-datepicker__navigation--next {
+          border-left-color: white !important;
+        }
+        
+        .datePicker {
+          width: 100% !important;
+          padding: 15px 20px !important;
+          border: 2px solid #e2e8f0 !important;
+          border-radius: 15px !important;
+          fontSize: 16px !important;
+          outline: none !important;
+          transition: all 0.3s ease !important;
+          font-family: "Comic Sans MS" !important;
+          background-color: white !important;
+          cursor: pointer !important;
+        }
+        
+        .datePicker:focus {
+          border-color: #667eea !important;
+          box-shadow: 0 0 15px rgba(102, 126, 234, 0.3) !important;
+        }
+      `}</style>
       <style jsx>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }

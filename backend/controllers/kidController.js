@@ -288,20 +288,28 @@ export const updateTaskCompletion = asyncHandler(async (req, res) => {
 export const markTaskComplete = asyncHandler(async (req, res) => {
   const { taskId } = req.params;
 
+  console.log(`markTaskComplete called with taskId: ${taskId}`);
+  console.log(`User role: ${req.userRole}`);
+  console.log(`Kid data:`, req.kid);
+  console.log(`User data:`, req.user);
+
   try {
     let kidId;
     
     // Check authentication based on role
     if (req.userRole === 'kid') {
       if (!req.kid) {
+        console.log("Kid authentication failed - no req.kid");
         return res.status(401).json({ 
           success: false, 
           message: "Kid authentication required" 
         });
       }
       kidId = req.kid._id;
+      console.log(`Kid authenticated: ${req.kid.name} (${kidId})`);
     } else if (req.userRole === 'parent') {
       if (!req.user) {
+        console.log("Parent authentication failed - no req.user");
         return res.status(401).json({ 
           success: false, 
           message: "Parent authentication required" 
@@ -313,6 +321,7 @@ export const markTaskComplete = asyncHandler(async (req, res) => {
         message: "This endpoint is for kids only" 
       });
     } else {
+      console.log(`Invalid user role: ${req.userRole}`);
       return res.status(401).json({ 
         success: false, 
         message: "Authentication required" 
@@ -325,19 +334,26 @@ export const markTaskComplete = asyncHandler(async (req, res) => {
     const kid = await Kid.findById(kidId);
     
     if (!kid) {
+      console.log(`Kid not found with ID: ${kidId}`);
       return res.status(404).json({ 
         success: false, 
         message: "Kid not found" 
       });
     }
 
+    console.log(`Found kid: ${kid.name}, tasks count: ${kid.tasks.length}`);
+
     const task = kid.tasks.id(taskId);
     if (!task) {
+      console.log(`Task not found with ID: ${taskId}`);
+      console.log(`Available task IDs:`, kid.tasks.map(t => t._id.toString()));
       return res.status(404).json({ 
         success: false, 
         message: "Task not found" 
       });
     }
+
+    console.log(`Found task: ${task.task}, current status - completed: ${task.completed}, isCompleted: ${task.isCompleted}`);
 
     if (task.isCompleted) {
       return res.status(400).json({ 
@@ -348,13 +364,19 @@ export const markTaskComplete = asyncHandler(async (req, res) => {
 
     // Mark task as complete
     task.isCompleted = true;
+    task.completed = true; // Also set the other field for consistency
     task.completedAt = new Date();
 
     // Update total points
     const taskPoints = task.points || 10;
-    kid.totalPoints = (kid.totalPoints || 0) + taskPoints;
+    const oldPoints = kid.totalPoints || 0;
+    kid.totalPoints = oldPoints + taskPoints;
+
+    console.log(`Updating points: ${oldPoints} + ${taskPoints} = ${kid.totalPoints}`);
 
     await kid.save();
+
+    console.log(`Task completed successfully for kid: ${kid.name}`);
 
     res.status(200).json({
       success: true,
@@ -368,9 +390,11 @@ export const markTaskComplete = asyncHandler(async (req, res) => {
     });
   } catch (error) {
     console.error("Error marking task complete:", error);
+    console.error("Error stack:", error.stack);
     res.status(500).json({ 
       success: false, 
-      message: "Error completing task" 
+      message: "Error completing task",
+      error: error.message 
     });
   }
 });
@@ -542,6 +566,7 @@ export const kidLogin = asyncHandler(async (req, res) => {
         id: kid._id,
         role: "kid",
         name: kid.name,
+        parentId: kid.parent,
       },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }

@@ -407,6 +407,32 @@ export const markTaskComplete = asyncHandler(async (req, res) => {
 
     console.log(`Found kid: ${kid.name}, tasks count: ${kid.tasks.length}`);
 
+    // Fix any tasks that are missing required fields before proceeding
+    let needsSave = false;
+    kid.tasks.forEach(task => {
+      if (!task.task || task.task.trim() === '') {
+        task.task = task.description || 'Untitled Task';
+        needsSave = true;
+      }
+      if (!task.description || task.description.trim() === '') {
+        task.description = task.task || 'No description';
+        needsSave = true;
+      }
+      if (!task.date) {
+        task.date = new Date();
+        needsSave = true;
+      }
+    });
+
+    // Save fixes if needed
+    if (needsSave) {
+      console.log('Fixing task data validation issues...');
+      await kid.save({ validateBeforeSave: false }); // Save without validation first
+      // Reload the kid to get clean data
+      const updatedKid = await Kid.findById(kidId);
+      Object.assign(kid, updatedKid);
+    }
+
     const task = kid.tasks.id(taskId);
     if (!task) {
       console.log(`Task not found with ID: ${taskId}`);

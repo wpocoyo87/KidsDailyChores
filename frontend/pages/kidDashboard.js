@@ -20,7 +20,7 @@ const KidDashboard = () => {
     const savedKidData = localStorage.getItem('kidData');
     
     console.log('Kid token exists:', !!kidToken);
-    console.log('Saved kid data:', savedKidData);
+    console.log('Saved kid data (raw):', savedKidData);
     
     if (!kidToken || !savedKidData) {
       router.push('/kidsLogin');
@@ -31,6 +31,9 @@ const KidDashboard = () => {
       const parsed = JSON.parse(savedKidData);
       console.log('Parsed kid data:', parsed);
       console.log('Kid ID:', parsed._id);
+      console.log('Kid name:', parsed.name);
+      console.log('Kid avatar:', parsed.selectedAvatar);
+      console.log('Kid points:', parsed.totalPoints);
       
       if (!parsed._id) {
         console.error('Kid ID is missing from stored data');
@@ -108,14 +111,21 @@ const KidDashboard = () => {
 
       console.log('Kid data response:', response.data);
       
-      if (response.data && response.data.totalPoints !== undefined) {
+      if (response.data) {
         console.log('Setting points from kid data:', response.data.totalPoints);
-        setPoints(response.data.totalPoints);
+        setPoints(response.data.totalPoints || 0);
         
-        // Update localStorage with latest data
-        const updatedKidData = { ...kidData, totalPoints: response.data.totalPoints };
-        setKidData(updatedKidData);
-        localStorage.setItem('kidData', JSON.stringify(updatedKidData));
+        // Update localStorage with complete kid data from response
+        const completeKidData = {
+          _id: response.data._id || kidData?._id,
+          name: response.data.name || kidData?.name,
+          selectedAvatar: response.data.selectedAvatar || kidData?.selectedAvatar,
+          gender: response.data.gender || kidData?.gender,
+          totalPoints: response.data.totalPoints || 0
+        };
+        console.log('Complete kid data being set:', completeKidData);
+        setKidData(completeKidData);
+        localStorage.setItem('kidData', JSON.stringify(completeKidData));
       }
     } catch (error) {
       console.error('Error refreshing kid data:', error);
@@ -163,8 +173,12 @@ const KidDashboard = () => {
         console.log('Updated points from task completion:', updatedPoints);
         setPoints(updatedPoints);
         
-        // Update localStorage
-        const updatedKidData = { ...kidData, totalPoints: updatedPoints };
+        // Update localStorage with all existing kid data plus new points
+        const updatedKidData = {
+          ...kidData,
+          totalPoints: updatedPoints
+        };
+        console.log('Updating kid data after task completion:', updatedKidData);
         setKidData(updatedKidData);
         localStorage.setItem('kidData', JSON.stringify(updatedKidData));
 
@@ -258,8 +272,13 @@ const KidDashboard = () => {
   }
 
   if (!kidData) {
+    console.log('kidData is null, returning null');
     return null;
   }
+
+  console.log('About to render with kidData:', kidData);
+  console.log('Kid name for display:', kidData?.name);
+  console.log('Kid avatar for display:', kidData?.selectedAvatar);
 
   const pendingTasks = tasks.filter(task => !task.isCompleted && !task.completed);
   const completedTasks = tasks.filter(task => task.isCompleted || task.completed);
@@ -336,23 +355,22 @@ const KidDashboard = () => {
 
         <div style={styles.dashboard}>
           {/* Header Section */}
-          <div style={styles.header}>
-            <div style={styles.welcomeSection}>
-              <img
-                src={kidData.selectedAvatar || "/images/default-avatar.png"}
-                alt={kidData.name}
-                style={styles.kidAvatar}
-              />
-              <div>
-                <h1 style={styles.welcomeTitle}>
-                  Hi {kidData.name}! 
-                  <span style={styles.emojiAnimation}>
-                    {emojis[currentEmoji]}
-                  </span>
-                </h1>
-                <p style={styles.welcomeSubtitle}>Ready to complete some tasks today?</p>
-              </div>
+          <div style={styles.header}>          <div style={styles.welcomeSection}>
+            <img
+              src={kidData?.selectedAvatar || "/images/default-avatar.png"}
+              alt={kidData?.name || "Kid"}
+              style={styles.kidAvatar}
+            />
+            <div>
+              <h1 style={styles.welcomeTitle}>
+                Hi {kidData?.name || "there"}! 
+                <span style={styles.emojiAnimation}>
+                  {emojis[currentEmoji]}
+                </span>
+              </h1>
+              <p style={styles.welcomeSubtitle}>Ready to complete some tasks today?</p>
             </div>
+          </div>
             
             <button onClick={handleLogout} style={styles.logoutButton}>
               👋 Logout

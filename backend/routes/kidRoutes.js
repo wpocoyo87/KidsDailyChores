@@ -16,6 +16,7 @@ import {
   removeKidPin,
   kidLogin,
   getKidsByParentEmail,
+  fixAllKidsTaskFields,
 } from "../controllers/kidController.js";
 
 console.log("kidRoutes.js loaded");
@@ -102,6 +103,13 @@ router.route("/login")
   .post((req, res) => {
     console.log("POST /api/kids/login route hit");
     kidLogin(req, res);
+  });
+
+// Utility route to fix database issues
+router.route("/fix-task-fields")
+  .post((req, res) => {
+    console.log("POST /api/kids/fix-task-fields route hit");
+    fixAllKidsTaskFields(req, res);
   });
 
 // I apply console log to retrieve the defect

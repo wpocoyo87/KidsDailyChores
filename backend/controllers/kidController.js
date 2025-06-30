@@ -66,6 +66,39 @@ export const getKidById = asyncHandler(async (req, res) => {
       return res.status(401).json({ error: "Authentication required" });
     }
     
+    // Fix any missing required fields in tasks before returning
+    let hasChanges = false;
+    if (kid.tasks && kid.tasks.length > 0) {
+      kid.tasks.forEach(task => {
+        if (!task.task && task.description) {
+          task.task = task.description;
+          hasChanges = true;
+        }
+        if (!task.task) {
+          task.task = "Task";
+          hasChanges = true;
+        }
+        if (!task.image) {
+          task.image = "/images/task1.png";
+          hasChanges = true;
+        }
+        if (!task.date) {
+          task.date = new Date().toISOString().split('T')[0];
+          hasChanges = true;
+        }
+      });
+
+      // Save if we made changes
+      if (hasChanges) {
+        try {
+          await kid.save();
+          console.log("Fixed missing task fields in getKidById");
+        } catch (error) {
+          console.error("Error fixing task fields in getKidById:", error);
+        }
+      }
+    }
+    
     res.status(200).json({
       _id: kid._id,
       name: kid.name,
@@ -194,6 +227,37 @@ export const getTasks = asyncHandler(async (req, res) => {
           success: false, 
           error: "Kid not found" 
         });
+      }
+
+      // Fix any missing required fields in tasks before returning
+      let hasChanges = false;
+      kid.tasks.forEach(task => {
+        if (!task.task && task.description) {
+          task.task = task.description;
+          hasChanges = true;
+        }
+        if (!task.task) {
+          task.task = "Task";
+          hasChanges = true;
+        }
+        if (!task.image) {
+          task.image = "/images/task1.png";
+          hasChanges = true;
+        }
+        if (!task.date) {
+          task.date = new Date().toISOString().split('T')[0];
+          hasChanges = true;
+        }
+      });
+
+      // Save if we made changes
+      if (hasChanges) {
+        try {
+          await kid.save();
+          console.log("Fixed missing task fields");
+        } catch (error) {
+          console.error("Error fixing task fields:", error);
+        }
       }
 
       console.log(`All tasks found: ${kid.tasks.length}`);
@@ -367,12 +431,36 @@ export const markTaskComplete = asyncHandler(async (req, res) => {
     task.completed = true; // Also set the other field for consistency
     task.completedAt = new Date();
 
+    // Ensure task has required fields for validation
+    if (!task.task && task.description) {
+      task.task = task.description; // Use description as task if task field is missing
+    }
+    if (!task.task) {
+      task.task = "Task"; // Fallback if both are missing
+    }
+
     // Update total points
     const taskPoints = task.points || 10;
     const oldPoints = kid.totalPoints || 0;
     kid.totalPoints = oldPoints + taskPoints;
 
     console.log(`Updating points: ${oldPoints} + ${taskPoints} = ${kid.totalPoints}`);
+
+    // Before saving, ensure all tasks have required fields
+    kid.tasks.forEach(t => {
+      if (!t.task && t.description) {
+        t.task = t.description;
+      }
+      if (!t.task) {
+        t.task = "Task";
+      }
+      if (!t.image) {
+        t.image = "/images/task1.png";
+      }
+      if (!t.date) {
+        t.date = new Date().toISOString().split('T')[0];
+      }
+    });
 
     await kid.save();
 
@@ -646,6 +734,63 @@ export const removeKidPin = asyncHandler(async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Failed to remove PIN",
+    });
+  }
+});
+
+// Utility function to fix all kids with missing task fields
+export const fixAllKidsTaskFields = asyncHandler(async (req, res) => {
+  try {
+    console.log("Starting to fix all kids task fields...");
+    
+    const kids = await Kid.find({});
+    let kidsFixed = 0;
+    
+    for (const kid of kids) {
+      let hasChanges = false;
+      
+      kid.tasks.forEach(task => {
+        if (!task.task && task.description) {
+          task.task = task.description;
+          hasChanges = true;
+        }
+        if (!task.task) {
+          task.task = "Task";
+          hasChanges = true;
+        }
+        if (!task.image) {
+          task.image = "/images/task1.png";
+          hasChanges = true;
+        }
+        if (!task.date) {
+          task.date = new Date().toISOString().split('T')[0];
+          hasChanges = true;
+        }
+      });
+      
+      if (hasChanges) {
+        try {
+          await kid.save();
+          kidsFixed++;
+          console.log(`Fixed task fields for kid: ${kid.name}`);
+        } catch (error) {
+          console.error(`Error fixing kid ${kid.name}:`, error);
+        }
+      }
+    }
+    
+    console.log(`Finished fixing ${kidsFixed} kids`);
+    
+    res.status(200).json({
+      success: true,
+      message: `Fixed task fields for ${kidsFixed} kids`,
+      kidsFixed
+    });
+  } catch (error) {
+    console.error("Error in fixAllKidsTaskFields:", error);
+    res.status(500).json({
+      success: false,
+      error: "Error fixing kids task fields"
     });
   }
 });

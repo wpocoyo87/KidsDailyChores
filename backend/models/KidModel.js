@@ -2,10 +2,14 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
 const taskSchema = new mongoose.Schema({
-  description: { type: String, required: true },
+  task: { type: String, required: true }, // Change from description to task
+  description: { type: String }, // Keep for backwards compatibility
   image: { type: String, required: true },
   date: { type: String, required: true },
   completed: { type: Boolean, default: false },
+  isCompleted: { type: Boolean, default: false }, // Add for consistency
+  points: { type: Number, default: 10 }, // Add points field
+  completedAt: { type: Date, default: null },
 });
 
 const kidSchema = new mongoose.Schema({
@@ -15,6 +19,7 @@ const kidSchema = new mongoose.Schema({
   gender: { type: String, required: true },
   selectedAvatar: { type: String, required: true },
   points: { type: Number, default: 0 },
+  totalPoints: { type: Number, default: 0 }, // Add totalPoints for consistency
   parent: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   tasks: [taskSchema],
   // Kids authentication system

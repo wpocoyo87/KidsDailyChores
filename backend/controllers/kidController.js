@@ -347,7 +347,7 @@ export const getKidsByParentEmail = asyncHandler(async (req, res) => {
     // Then find kids that belong to this parent and have PIN set
     const Kid = (await import("../models/KidModel.js")).default;
     const kids = await Kid.find({
-      userId: parent._id,
+      parent: parent._id,
       kidPin: { $exists: true, $ne: null },
     }).select("-kidPin"); // Don't send PIN in response
 

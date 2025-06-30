@@ -211,58 +211,68 @@ a {
 }
 
 input, textarea, select, option {
-  color: #222 !important;
+  color: #000 !important;
+  background-color: #fff !important;
   font-family: "Comic Sans MS" !important;
 }
 
-/* Placeholder styling */
+/* Placeholder styling - black text on white background */
 input::placeholder, textarea::placeholder {
-  color: #999 !important;
+  color: #000 !important;
+  background-color: transparent !important;
   font-family: "Comic Sans MS" !important;
   opacity: 1;
 }
 
 /* Better placeholder styling for different browsers */
 input::-webkit-input-placeholder {
-  color: #999 !important;
+  color: #000 !important;
+  background-color: transparent !important;
   font-family: "Comic Sans MS" !important;
 }
 
 input::-moz-placeholder {
-  color: #999 !important;
+  color: #000 !important;
+  background-color: transparent !important;
   font-family: "Comic Sans MS" !important;
   opacity: 1;
 }
 
 input:-ms-input-placeholder {
-  color: #999 !important;
+  color: #000 !important;
+  background-color: transparent !important;
   font-family: "Comic Sans MS" !important;
 }
 
 input:-moz-placeholder {
-  color: #999 !important;
+  color: #000 !important;
+  background-color: transparent !important;
   font-family: "Comic Sans MS" !important;
   opacity: 1;
 }
 
 textarea::-webkit-input-placeholder {
-  color: #999 !important;
+  color: #000 !important;
+  background-color: transparent !important;
   font-family: "Comic Sans MS" !important;
 }
 
 textarea::-moz-placeholder {
-  color: #999 !important;
+  color: #000 !important;
+  background-color: transparent !important;
   font-family: "Comic Sans MS" !important;
   opacity: 1;
 }
 
 textarea:-ms-input-placeholder {
-  color: #999 !important;
+  color: #000 !important;
+  background-color: transparent !important;
   font-family: "Comic Sans MS" !important;
 }
 
 textarea:-moz-placeholder {
-  color: #999 !important;
+  color: #000 !important;
+  background-color: transparent !important;
   font-family: "Comic Sans MS" !important;
   opacity: 1;
 }
@@ -296,4 +306,53 @@ button, .btn, .button {
 .react-datepicker__month,
 .react-datepicker__year {
   font-family: "Comic Sans MS" !important;
+}
+
+/* Mobile-specific font overrides */
+@media screen and (max-width: 768px) {
+  * {
+    font-family: "Comic Sans MS", cursive, sans-serif !important;
+    -webkit-font-family: "Comic Sans MS", cursive, sans-serif !important;
+  }
+  
+  body, html {
+    font-family: "Comic Sans MS", cursive, sans-serif !important;
+    -webkit-font-family: "Comic Sans MS", cursive, sans-serif !important;
+  }
+  
+  h1, h2, h3, h4, h5, h6, p, div, span, a, button, input, textarea, select, label {
+    font-family: "Comic Sans MS", cursive, sans-serif !important;
+    -webkit-font-family: "Comic Sans MS", cursive, sans-serif !important;
+  }
+}
+
+/* iOS Safari specific */
+@supports (-webkit-touch-callout: none) {
+  * {
+    font-family: "Comic Sans MS", cursive, sans-serif !important;
+    -webkit-font-family: "Comic Sans MS", cursive, sans-serif !important;
+  }
+}
+
+/* Android Chrome specific */
+@media screen and (-webkit-min-device-pixel-ratio: 1) {
+  * {
+    font-family: "Comic Sans MS", cursive, sans-serif !important;
+    -webkit-font-family: "Comic Sans MS", cursive, sans-serif !important;
+  }
+}
+
+/* Font loading to ensure Comic Sans MS is available */
+@font-face {
+  font-family: 'Comic Sans MS Fallback';
+  src: local('Comic Sans MS'), local('ComicSansMS'), local('Comic Sans'), 
+       local('Chalkduster'), local('Bradley Hand'), 
+       local('Marker Felt'), local('Kristen ITC');
+  font-display: swap;
+}
+
+/* Use the fallback font family as primary */
+* {
+  font-family: "Comic Sans MS", "Comic Sans MS Fallback", "Chalkduster", "Bradley Hand", 
+               "Marker Felt", "Kristen ITC", cursive, fantasy, sans-serif !important;
 }

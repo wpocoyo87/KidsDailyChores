@@ -50,7 +50,18 @@ const AddKidPage = () => {
       router.push("/choosekids");
     } catch (error) {
       console.error("Error adding kid:", error);
-      setError("Failed to add kid. Please try again.");
+      
+      // Handle specific error cases
+      let errorMsg = "Failed to add kid. Please try again.";
+      if (error.response?.status === 400) {
+        errorMsg = "Please check the kid's information. All fields are required.";
+      } else if (error.response?.status === 409) {
+        errorMsg = "A kid with this name already exists. Please choose a different name.";
+      } else if (error.response?.status === 500) {
+        errorMsg = "Server error. Please try again later.";
+      }
+      
+      setError(errorMsg);
     }
   };
 

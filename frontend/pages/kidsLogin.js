@@ -37,7 +37,7 @@ const KidsLoginPage = () => {
       if (response.data.success) {
         const kidsData = response.data.kids;
         if (kidsData.length === 0) {
-          setError("No kids found for this parent email or no PINs have been set yet.");
+          setError("No kids found for this email address. Please check if the parent has registered and set up kid profiles.");
           return;
         }
         setKids(kidsData);
@@ -46,7 +46,7 @@ const KidsLoginPage = () => {
       }
     } catch (error) {
       console.error("Error fetching kids:", error);
-      setError(error.response?.data?.error || "Failed to load kids data");
+      setError(error.response?.data?.error || "Unable to connect to server. Please check your internet connection and try again.");
       playSound("error");
     } finally {
       setIsLoading(false);
@@ -133,7 +133,19 @@ const KidsLoginPage = () => {
       }
     } catch (error) {
       console.error("Kid login error:", error);
-      const errorMsg = error.response?.data?.error || "Invalid PIN. Please try again.";
+      
+      // Handle specific error cases
+      let errorMsg = "Invalid PIN. Please try again.";
+      if (error.response?.status === 404) {
+        errorMsg = "Kid not found. Please contact your parent.";
+      } else if (error.response?.status === 400) {
+        errorMsg = "Incorrect PIN. Please try again.";
+      } else if (error.response?.status === 500) {
+        errorMsg = "Server error. Please try again later.";
+      } else if (error.response?.data?.error) {
+        errorMsg = error.response.data.error;
+      }
+      
       setError(errorMsg);
       setPin(""); // Clear PIN on error
       playSound("error");

@@ -177,7 +177,20 @@ const RegisterPage = () => {
       }, 2000); // Adjust this path as per your routes
     } catch (error) {
       console.error("Registration error:", error);
-      setError("Registration failed. Please try again.");
+      
+      // Handle specific error cases
+      let errorMsg = "Registration failed. Please try again.";
+      if (error.response?.status === 400) {
+        errorMsg = "This email is already registered. Please use a different email or try logging in.";
+      } else if (error.response?.status === 422) {
+        errorMsg = "Please check your information. Make sure all fields are filled correctly.";
+      } else if (error.response?.status === 500) {
+        errorMsg = "Server error. Please try again later.";
+      } else if (error.response?.data?.error) {
+        errorMsg = error.response.data.error;
+      }
+      
+      setError(errorMsg);
     }
   };
 

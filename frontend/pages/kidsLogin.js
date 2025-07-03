@@ -555,7 +555,7 @@ const KidsLoginPage = () => {
           {step === 1 && (
             <>
               <p style={styles.subtitle}>
-                Enter your parent's email address first! 📧
+                Enter your parent&apos;s email address first! 📧
               </p>
               <form onSubmit={handleEmailSubmit}>
                 <input

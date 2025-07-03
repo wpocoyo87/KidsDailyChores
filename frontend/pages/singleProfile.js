@@ -295,7 +295,7 @@ const KidProfilePage = () => {
           {/* Header Section */}
           <div style={styles.header}>
             <h1 style={styles.title}>
-              {selectedKid.name}'s Super Profile! 
+              {selectedKid.name}&apos;s Super Profile! 
               <span style={styles.characterDisplay}>
                 {characters[currentCharacter]}
               </span>

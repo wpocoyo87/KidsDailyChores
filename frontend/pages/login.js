@@ -20,7 +20,7 @@ const LoginPage = () => {
   const welcomeMessages = [
     "Welcome back, Super Hero! 🦸‍♂️",
     "Ready for more adventures? 🌟",
-    "Let's create some awesome tasks! 🎯",
+    "Let&apos;s create some awesome tasks! 🎯",
     "Time to be amazing! ✨",
     "Your daily missions await! 🚀",
   ]
@@ -417,7 +417,7 @@ const LoginPage = () => {
           <div style={styles.inputGroup}>
             <label style={styles.label}>
               <span style={styles.inputIcon}>📧</span>
-              Parent's Email:
+              Parent&apos;s Email:
             </label>
             <input
               type="email"
@@ -481,7 +481,7 @@ const LoginPage = () => {
 
         {/* Fun facts */}
         <div style={{ textAlign: "center", marginTop: "20px", color: "#718096", fontSize: "0.9rem" }}>
-          <p>🌟 Fun Fact: You're about to create amazing memories! 🌟</p>
+          <p>🌟 Fun Fact: You&apos;re about to create amazing memories! 🌟</p>
         </div>
       </div>
     </div>

@@ -21,6 +21,8 @@ const InsertTask = () => {
   const [showConfetti, setShowConfetti] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [isShaking, setIsShaking] = useState(false)
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
   const apiUrl = process.env.NEXT_PUBLIC_API_URL
 
   const styles = {
@@ -391,6 +393,25 @@ const InsertTask = () => {
       height: "10px",
       animation: "confettiFall 3s linear infinite",
     },
+    errorMessage: {
+      backgroundColor: "#fee2e2",
+      border: "2px solid #f87171",
+      borderRadius: "12px",
+      padding: "16px",
+      marginBottom: "20px",
+      color: "#dc2626",
+      fontSize: "16px",
+      fontWeight: "bold",
+      textAlign: "center",
+      animation: "shake 0.5s ease-in-out",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "8px",
+    },
+    errorIcon: {
+      fontSize: "20px",
+    },
   }
 
   useEffect(() => {
@@ -500,23 +521,28 @@ const InsertTask = () => {
 
   const handleSaveTasks = async () => {
     try {
+      setError("")
+      setIsLoading(true)
+      
       if (!selectedKid) {
-        console.error("No kid selected to save tasks for")
+        setError("Please select a kid first before saving tasks.")
         return
       }
       if (!tasks.length) {
-        console.error("No tasks to save")
+        setError("Please add at least one task before saving.")
         return
       }
       if (!token) {
-        console.error("Token not found in localStorage")
+        setError("You are not logged in. Please log in again.")
         return
       }
+      
       const tasksToSave = tasks.map((task) => ({
         description: task.description,
         image: task.image,
         date: task.date,
       }))
+      
       const response = await axios.post(
         `${apiUrl}/kids/${selectedKid._id}/tasks`,
         { tasks: tasksToSave },
@@ -526,15 +552,31 @@ const InsertTask = () => {
           },
         },
       )
+      
       console.log("Tasks saved successfully:", response.data)
       playSound("success")
       router.push("/listTask")
     } catch (error) {
       console.error("Error saving tasks:", error)
-      if (error.response) {
-        console.error("Server responded with status:", error.response.status)
-        console.error("Server response data:", error.response.data)
+      
+      // Handle specific error cases
+      let errorMsg = "Failed to save tasks. Please try again.";
+      if (error.response?.status === 401) {
+        errorMsg = "You are not authorized. Please log in again.";
+      } else if (error.response?.status === 404) {
+        errorMsg = "Kid not found. Please select a valid kid.";
+      } else if (error.response?.status === 400) {
+        errorMsg = "Invalid task data. Please check your entries.";
+      } else if (error.response?.status === 500) {
+        errorMsg = "Server error. Please try again later.";
+      } else if (error.response?.data?.error) {
+        errorMsg = error.response.data.error;
       }
+      
+      setError(errorMsg)
+      playSound("error")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -834,6 +876,14 @@ const InsertTask = () => {
             </div>
           </div>
         </div>
+
+        {/* Error Message Display */}
+        {error && (
+          <div style={styles.errorMessage}>
+            <span style={styles.errorIcon}>⚠️</span>
+            {error}
+          </div>
+        )}
 
         <div style={styles.gridContainer} className="grid-container">
           {/* Left Column */}

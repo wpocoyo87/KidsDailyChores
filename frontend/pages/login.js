@@ -84,7 +84,7 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault()
     if (!email || !password) {
-      setError("🚨 Oops! Please fill in both email and password! 🚨")
+      setError("Please enter both email and password to continue")
       playSound("error")
       return
     }
@@ -124,7 +124,20 @@ const LoginPage = () => {
       router.push("/choosekids")
     } catch (error) {
       console.error("Login error:", error)
-      setError("🔐 Hmm, that doesn&apos;t look right! Check your email and password! 🔐")
+      
+      // Handle specific error cases
+      let errorMsg = "Invalid email or password. Please try again.";
+      if (error.response?.status === 401) {
+        errorMsg = "Incorrect email or password. Please check your credentials.";
+      } else if (error.response?.status === 404) {
+        errorMsg = "This email is not registered. Please sign up first.";
+      } else if (error.response?.status === 500) {
+        errorMsg = "Server error. Please try again later.";
+      } else if (error.response?.data?.error) {
+        errorMsg = error.response.data.error;
+      }
+      
+      setError(errorMsg)
       playSound("error")
     } finally {
       setIsLoading(false)

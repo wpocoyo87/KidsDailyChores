@@ -80,7 +80,17 @@ const SetKidPin = () => {
       }
     } catch (error) {
       console.error("Set PIN error:", error);
-      setError(error.response?.data?.error || "Failed to set PIN");
+      let errorMsg = "Unable to save PIN. Please try again.";
+      if (error.response?.status === 400) {
+        errorMsg = "Invalid PIN format. Please use 4 digits only.";
+      } else if (error.response?.status === 404) {
+        errorMsg = "Kid profile not found. Please try again.";
+      } else if (error.response?.status === 500) {
+        errorMsg = "Server error. Please try again later.";
+      } else if (error.response?.data?.error) {
+        errorMsg = error.response.data.error;
+      }
+      setError(errorMsg);
       playSound("error");
     } finally {
       setIsLoading(false);

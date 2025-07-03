@@ -25,11 +25,11 @@ const RegisterPage = () => {
   // Fun characters for kids
   const characters = ["🌟", "🎨", "👶", "🧒", "👦", "👧", "🎯", "🏆"];
   const welcomeMessages = [
-    "Let&apos;s create your super family! 👨‍👩‍👧‍👦",
-    "Ready to start the adventure? 🚀",
-    "Welcome to the family zone! 🏠",
-    "Time to meet your superheroes! ��‍♂️🦸‍♀️",
-    "Let&apos;s build something amazing! ✨",
+    "Let's create your family account! 👨‍👩‍👧‍👦",
+    "Ready to start your family journey? 🚀",
+    "Welcome to KidsDailyChores! 🏠",
+    "Time to set up your family tasks! 🦸‍♂️🦸‍♀️",
+    "Let's build something amazing together! ✨",
   ];
 
   // Character rotation effect
@@ -646,7 +646,7 @@ const RegisterPage = () => {
           
           <div style={styles.welcomeMessageContainer}>
             <div style={styles.welcomeMessage}>
-              {welcomeMessage || "Let&apos;s create your super family! 👨‍👩‍👧‍👦"}
+              {welcomeMessage || "Let's create your family account! 👨‍👩‍👧‍👦"}
             </div>
             <span style={styles.characterDisplay}>
               {characters[currentCharacter]}

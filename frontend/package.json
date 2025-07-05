@@ -12,11 +12,13 @@
     "@react-three/drei": "^9.88.13",
     "@react-three/fiber": "^8.15.19",
     "axios": "^1.7.2",
+    "jwt-decode": "^4.0.0",
     "mongoose": "^8.4.3",
-    "next": "14.2.4",
+    "next": "^14.2.30",
     "react": "^18",
     "react-datepicker": "^7.1.0",
     "react-dom": "^18",
+    "react-icons": "^5.5.0",
     "three": "^0.160.0"
   },
   "devDependencies": {

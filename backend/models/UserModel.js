@@ -16,9 +16,12 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  kids: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Kid' }],
-  role: { type: String, enum: ['parent'], default: 'parent' },
+  kids: [{ type: mongoose.Schema.Types.ObjectId, ref: "Kid" }],
+  role: { type: String, enum: ["parent"], default: "parent" },
   isActive: { type: Boolean, default: true },
+  failedLoginAttempts: { type: Number, default: 0 },
+  lockoutUntil: { type: Date, default: null },
+  lastFailedLogin: { type: Date, default: null },
 });
 
 // Encrypt password before saving user

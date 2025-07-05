@@ -1,6 +1,10 @@
 import express from "express";
 const router = express.Router();
-import { protect, parentOnly, parentOrKid } from "../middlewares/authMiddleware.js";
+import {
+  protect,
+  parentOnly,
+  parentOrKid,
+} from "../middlewares/authMiddleware.js";
 import {
   createKid,
   getKidById,
@@ -17,6 +21,7 @@ import {
   kidLogin,
   getKidsByParentEmail,
   fixAllKidsTaskFields,
+  getKidsForParent,
 } from "../controllers/kidController.js";
 
 console.log("kidRoutes.js loaded");
@@ -32,21 +37,27 @@ router
     addTasks(req, res);
   });
 
-router.route("/:kidId/tasks/:taskId").delete(protect, parentOnly, (req, res) => {
-  console.log("DELETE /api/kids/:kidId/tasks/:taskId route hit");
-  deleteTask(req, res);
-});
+router
+  .route("/:kidId/tasks/:taskId")
+  .delete(protect, parentOnly, (req, res) => {
+    console.log("DELETE /api/kids/:kidId/tasks/:taskId route hit");
+    deleteTask(req, res);
+  });
 
-router.route("/:kidId/tasks/:taskId/completion").put(protect, parentOrKid, (req, res) => {
-  console.log("PUT /api/kids/:kidId/tasks/:taskId/completion route hit");
-  updateTaskCompletion(req, res);
-});
+router
+  .route("/:kidId/tasks/:taskId/completion")
+  .put(protect, parentOrKid, (req, res) => {
+    console.log("PUT /api/kids/:kidId/tasks/:taskId/completion route hit");
+    updateTaskCompletion(req, res);
+  });
 
 // Route for kids to mark tasks as complete
-router.route("/tasks/:taskId/complete").patch(protect, parentOrKid, (req, res) => {
-  console.log("PATCH /api/kids/tasks/:taskId/complete route hit");
-  markTaskComplete(req, res);
-});
+router
+  .route("/tasks/:taskId/complete")
+  .patch(protect, parentOrKid, (req, res) => {
+    console.log("PATCH /api/kids/tasks/:taskId/complete route hit");
+    markTaskComplete(req, res);
+  });
 
 router
   .route("/:kidId/points")
@@ -81,14 +92,14 @@ router.post("/add", protect, parentOnly, (req, res) => {
 });
 
 // Kids by parent email - No authentication required for this public endpoint
-router.route("/by-parent-email")
-  .post((req, res) => {
-    console.log("POST /api/kids/by-parent-email route hit");
-    getKidsByParentEmail(req, res);
-  });
+router.route("/by-parent-email").post((req, res) => {
+  console.log("POST /api/kids/by-parent-email route hit");
+  getKidsByParentEmail(req, res);
+});
 
 // Kids Authentication Routes - Parent only for PIN management
-router.route("/:kidId/pin")
+router
+  .route("/:kidId/pin")
   .post(protect, parentOnly, (req, res) => {
     console.log("POST /api/kids/:kidId/pin route hit");
     setKidPin(req, res);
@@ -99,18 +110,18 @@ router.route("/:kidId/pin")
   });
 
 // Kids login - No authentication required for login attempt
-router.route("/login")
-  .post((req, res) => {
-    console.log("POST /api/kids/login route hit");
-    kidLogin(req, res);
-  });
+router.route("/login").post((req, res) => {
+  console.log("POST /api/kids/login route hit");
+  kidLogin(req, res);
+});
 
 // Utility route to fix database issues
-router.route("/fix-task-fields")
-  .post((req, res) => {
-    console.log("POST /api/kids/fix-task-fields route hit");
-    fixAllKidsTaskFields(req, res);
-  });
+router.route("/fix-task-fields").post((req, res) => {
+  console.log("POST /api/kids/fix-task-fields route hit");
+  fixAllKidsTaskFields(req, res);
+});
+
+router.get("/", protect, parentOnly, getKidsForParent);
 
 // I apply console log to retrieve the defect
 export default router;

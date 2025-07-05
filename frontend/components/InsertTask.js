@@ -1,34 +1,47 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import axios from "axios"
-import { useRouter } from "next/router"
-import DatePicker from "react-datepicker"
-import "react-datepicker/dist/react-datepicker.css"
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useRouter } from "next/router";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const InsertTask = () => {
-  const router = useRouter()
-  const [token, setToken] = useState(null)
-  const [storedSelectedKid, setStoredSelectedKid] = useState(null)
-  const [selectedKid, setSelectedKid] = useState(null)
-  const [gender, setGender] = useState("")
-  const [description, setDescription] = useState("")
-  const [image, setImage] = useState("")
-  const [tasks, setTasks] = useState([])
-  const [selectedImage, setSelectedImage] = useState(null)
-  const [selectedDate, setSelectedDate] = useState(new Date())
-  const [isClient, setIsClient] = useState(false)
-  const [showConfetti, setShowConfetti] = useState(false)
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [isShaking, setIsShaking] = useState(false)
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const router = useRouter();
+  const [token, setToken] = useState(null);
+  const [storedSelectedKid, setStoredSelectedKid] = useState(null);
+  const [selectedKid, setSelectedKid] = useState(null);
+  const [gender, setGender] = useState("");
+  const [description, setDescription] = useState("");
+  const [image, setImage] = useState("");
+  const [tasks, setTasks] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isClient, setIsClient] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const [storageVersion, setStorageVersion] = useState(0);
+
+  // Memoized function to fetch images - must be before any early returns
+  const fetchImages = React.useCallback((gender) => {
+    const images = [];
+    const numImages = 12;
+    for (let i = 1; i <= numImages; i++) {
+      images.push(`/images/${gender}Task${i}.jpeg`);
+    }
+    console.log("Fetched images for gender:", gender, images);
+    return images;
+  }, []);
 
   const styles = {
     loadingContainer: {
       minHeight: "100vh",
-      background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
+      background:
+        "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -58,7 +71,8 @@ const InsertTask = () => {
     },
     container: {
       minHeight: "100vh",
-      background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
+      background:
+        "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
       padding: "20px",
       fontFamily: "Comic Sans MS",
       position: "relative",
@@ -201,14 +215,15 @@ const InsertTask = () => {
       boxSizing: "border-box",
     },
     imageGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))",
-      gap: "15px",
-      maxHeight: "350px",
-      overflowY: "auto",
-      padding: "10px",
+      display: "flex",
+      flexDirection: "row",
+      overflowX: "auto",
+      gap: "18px",
+      padding: "10px 0",
       borderRadius: "15px",
       backgroundColor: "rgba(248,250,252,0.5)",
+      scrollbarWidth: "thin",
+      scrollbarColor: "#667eea #e2e8f0",
     },
     imageItem: {
       width: "100%",
@@ -412,58 +427,89 @@ const InsertTask = () => {
     errorIcon: {
       fontSize: "20px",
     },
-  }
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setIsClient(true)
-      const tokenValue = localStorage.getItem("token")
-      const kidValue = localStorage.getItem("selectedKid")
-      setToken(tokenValue)
-      setStoredSelectedKid(kidValue)
+      setIsClient(true);
+      const tokenValue = localStorage.getItem("token");
+      const kidValue = localStorage.getItem("selectedKid");
+      setToken(tokenValue);
+      setStoredSelectedKid(kidValue);
       if (kidValue) {
         try {
-          const parsedSelectedKid = JSON.parse(kidValue)
-          setSelectedKid(parsedSelectedKid)
-          const genderValue = parsedSelectedKid.gender === "female" ? "Girl" : "Boy"
-          setGender(genderValue)
-          console.log("Gender of kid:", parsedSelectedKid.gender)
+          const parsedSelectedKid = JSON.parse(kidValue);
+          setSelectedKid(parsedSelectedKid);
+          const genderValue =
+            parsedSelectedKid.gender === "female" ? "Girl" : "Boy";
+          setGender(genderValue);
+          console.log("Gender of kid:", parsedSelectedKid.gender);
         } catch (error) {
-          console.error("Error parsing selectedKid from localStorage", error)
+          console.error("Error parsing selectedKid from localStorage", error);
         }
       }
     }
-  }, [])
+  }, []);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setStorageVersion((v) => v + 1);
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const kid = JSON.parse(localStorage.getItem("selectedKid"));
+      setStoredSelectedKid(kid);
+      setSelectedKid(kid);
+      if (kid && kid.gender) {
+        setGender(kid.gender.toLowerCase());
+      }
+    }
+  }, [storageVersion]);
 
   // Sound effects
   const playSound = (type) => {
     try {
-      let audio
+      let audio;
       switch (type) {
         case "click":
           audio = new Audio(
-            "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT",
-          )
-          break
+            "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT"
+          );
+          break;
         case "success":
           audio = new Audio(
-            "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT",
-          )
-          break
+            "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT"
+          );
+          break;
         case "delete":
           audio = new Audio(
-            "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT",
-          )
-          break
+            "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT"
+          );
+          break;
+        case "error":
+          audio = new Audio(
+            "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT"
+          );
+          break;
       }
       if (audio) {
-        audio.volume = 0.3
-        audio.play().catch((e) => console.log("Audio play failed:", e))
+        audio.volume = 0.3;
+        // Add user interaction check for better browser compatibility
+        audio.play().catch((e) => {
+          // Only log if it's not a user interaction error
+          if (!e.message.includes("user gesture")) {
+            console.log("Audio play failed:", e);
+          }
+        });
       }
     } catch (error) {
-      console.log("Sound not available:", error)
+      console.log("Sound not available:", error);
     }
-  }
+  };
 
   if (!isClient || !token || !selectedKid) {
     return (
@@ -476,17 +522,7 @@ const InsertTask = () => {
           </div>
         </div>
       </div>
-    )
-  }
-
-  const fetchImages = (gender) => {
-    const images = []
-    const numImages = 12
-    for (let i = 1; i <= numImages; i++) {
-      images.push(`/images/${gender}Task${i}.jpeg`)
-    }
-    console.log("Fetched images for gender:", gender, images)
-    return images
+    );
   }
 
   const handleAddTask = () => {
@@ -496,53 +532,54 @@ const InsertTask = () => {
         description,
         image,
         date: selectedDate.toISOString().split("T")[0],
-      }
-      setTasks([...tasks, newTask])
-      setDescription("")
-      setImage("")
-      setSelectedImage(null)
-      setSelectedDate(new Date())
+      };
+      setTasks([...tasks, newTask]);
+      setDescription("");
+      setImage("");
+      setSelectedImage(null);
+      setSelectedDate(new Date());
 
       // Success animation
-      setShowSuccess(true)
-      setShowConfetti(true)
-      playSound("success")
+      setShowSuccess(true);
+      setShowConfetti(true);
+      playSound("success");
 
       setTimeout(() => {
-        setShowSuccess(false)
-        setShowConfetti(false)
-      }, 2000)
+        setShowSuccess(false);
+        setShowConfetti(false);
+      }, 2000);
     } else {
       // Shake animation for validation
-      setIsShaking(true)
-      setTimeout(() => setIsShaking(false), 500)
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
     }
-  }
+  };
 
   const handleSaveTasks = async () => {
     try {
-      setError("")
-      setIsLoading(true)
-      
+      setError("");
+      setIsLoading(true);
+
       if (!selectedKid) {
-        setError("Please select a kid first before saving tasks.")
-        return
+        setError("Please select a kid first before saving tasks.");
+        return;
       }
       if (!tasks.length) {
-        setError("Please add at least one task before saving.")
-        return
+        setError("Please add at least one task before saving.");
+        return;
       }
       if (!token) {
-        setError("You are not logged in. Please log in again.")
-        return
+        setError("You are not logged in. Please log in again.");
+        return;
       }
-      
+
       const tasksToSave = tasks.map((task) => ({
-        description: task.description,
+        task: task.description, // Map description to task field
+        description: task.description, // Keep for backwards compatibility
         image: task.image,
         date: task.date,
-      }))
-      
+      }));
+
       const response = await axios.post(
         `${apiUrl}/kids/${selectedKid._id}/tasks`,
         { tasks: tasksToSave },
@@ -550,15 +587,15 @@ const InsertTask = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
-      )
-      
-      console.log("Tasks saved successfully:", response.data)
-      playSound("success")
-      router.push("/listTask")
+        }
+      );
+
+      console.log("Tasks saved successfully:", response.data);
+      playSound("success");
+      router.push("/listTask");
     } catch (error) {
-      console.error("Error saving tasks:", error)
-      
+      console.error("Error saving tasks:", error);
+
       // Handle specific error cases
       let errorMsg = "Failed to save tasks. Please try again.";
       if (error.response?.status === 401) {
@@ -572,35 +609,35 @@ const InsertTask = () => {
       } else if (error.response?.data?.error) {
         errorMsg = error.response.data.error;
       }
-      
-      setError(errorMsg)
-      playSound("error")
+
+      setError(errorMsg);
+      playSound("error");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleDeleteTask = (index) => {
-    const updatedTasks = tasks.filter((_, i) => i !== index)
-    setTasks(updatedTasks)
-    playSound("delete")
-  }
+    const updatedTasks = tasks.filter((_, i) => i !== index);
+    setTasks(updatedTasks);
+    playSound("delete");
+  };
 
   const handleImageClick = (imgPath) => {
-    setSelectedImage(imgPath)
-    setImage(imgPath)
-    playSound("click")
-  }
+    setSelectedImage(imgPath);
+    setImage(imgPath);
+    playSound("click");
+  };
 
   const handleHomeClick = () => {
-    playSound("click")
-    router.push("/choosekids")
-  }
+    playSound("click");
+    router.push("/choosekids");
+  };
 
   const handleSeeCurrentTasks = () => {
-    playSound("click")
-    router.push("/listTask")
-  }
+    playSound("click");
+    router.push("/listTask");
+  };
 
   return (
     <div style={styles.container}>
@@ -612,220 +649,320 @@ const InsertTask = () => {
           position: relative;
           z-index: 1000 !important;
         }
-        
+
         .react-datepicker__input-container {
           width: 100%;
           position: relative;
           z-index: 1000 !important;
         }
-        
+
         .react-datepicker__input-container input {
           width: 100% !important;
           box-sizing: border-box;
         }
-        
+
         .react-datepicker {
           font-family: "Comic Sans MS" !important;
           border: 2px solid #e2e8f0 !important;
           border-radius: 15px !important;
-          box-shadow: 0 20px 50px rgba(0,0,0,0.3) !important;
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3) !important;
           z-index: 99999 !important;
           position: absolute !important;
         }
-        
+
         .react-datepicker__header {
           background-color: #667eea !important;
           border-bottom: none !important;
           border-radius: 13px 13px 0 0 !important;
           padding-top: 10px !important;
         }
-        
+
         .react-datepicker__current-month {
           color: white !important;
           font-weight: bold !important;
           font-size: 16px !important;
           font-family: "Comic Sans MS" !important;
         }
-        
+
         .react-datepicker__day-name {
           color: white !important;
           font-weight: bold !important;
           font-family: "Comic Sans MS" !important;
         }
-        
+
         .react-datepicker__day {
           font-family: "Comic Sans MS" !important;
           border-radius: 8px !important;
           margin: 2px !important;
         }
-        
+
         .react-datepicker__day:hover {
           background-color: #667eea !important;
           color: white !important;
         }
-        
+
         .react-datepicker__day--selected {
           background-color: #ff6b6b !important;
           color: white !important;
           font-weight: bold !important;
         }
-        
+
         .react-datepicker__day--today {
           background-color: #ffd700 !important;
           color: #333 !important;
           font-weight: bold !important;
         }
-        
+
         .react-datepicker__navigation {
           border: none !important;
           background: none !important;
         }
-        
+
         .react-datepicker__navigation--previous {
           border-right-color: white !important;
         }
-        
+
         .react-datepicker__navigation--next {
           border-left-color: white !important;
         }
-        
+
         .react-datepicker__portal {
           z-index: 99999 !important;
         }
-        
+
         .react-datepicker-popper {
           z-index: 99999 !important;
         }
-        
+
         .datePicker {
           width: 100% !important;
           padding: 12px 16px !important;
           border: 2px solid #e2e8f0 !important;
           border-radius: 15px !important;
-          fontSize: 16px !important;
+          fontsize: 16px !important;
           outline: none !important;
           transition: all 0.3s ease !important;
           font-family: "Comic Sans MS" !important;
           background-color: white !important;
           cursor: pointer !important;
         }
-        
+
         .datePicker:focus {
           border-color: #667eea !important;
           box-shadow: 0 0 15px rgba(102, 126, 234, 0.3) !important;
         }
+
+        .image-carousel::-webkit-scrollbar {
+          height: 8px;
+        }
+        .image-carousel::-webkit-scrollbar-thumb {
+          background: #667eea;
+          border-radius: 4px;
+        }
+        .image-carousel::-webkit-scrollbar-track {
+          background: #e2e8f0;
+          border-radius: 4px;
+        }
       `}</style>
       <style jsx>{`
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
-        
+
         @keyframes bounce {
-          0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-          40% { transform: translateY(-20px); }
-          60% { transform: translateY(-10px); }
+          0%,
+          20%,
+          50%,
+          80%,
+          100% {
+            transform: translateY(0);
+          }
+          40% {
+            transform: translateY(-20px);
+          }
+          60% {
+            transform: translateY(-10px);
+          }
         }
-        
+
         @keyframes pulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-          100% { transform: scale(1); }
+          0% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.05);
+          }
+          100% {
+            transform: scale(1);
+          }
         }
-        
+
         @keyframes ping {
-          0% { transform: scale(1); opacity: 1; }
-          75%, 100% { transform: scale(2); opacity: 0; }
+          0% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          75%,
+          100% {
+            transform: scale(2);
+            opacity: 0;
+          }
         }
-        
+
         @keyframes rainbow {
-          0% { color: #ff0000; }
-          16% { color: #ff8000; }
-          33% { color: #ffff00; }
-          50% { color: #00ff00; }
-          66% { color: #0080ff; }
-          83% { color: #8000ff; }
-          100% { color: #ff0000; }
+          0% {
+            color: #ff0000;
+          }
+          16% {
+            color: #ff8000;
+          }
+          33% {
+            color: #ffff00;
+          }
+          50% {
+            color: #00ff00;
+          }
+          66% {
+            color: #0080ff;
+          }
+          83% {
+            color: #8000ff;
+          }
+          100% {
+            color: #ff0000;
+          }
         }
-        
+
         @keyframes wiggle {
-          0%, 100% { transform: rotate(0deg); }
-          25% { transform: rotate(5deg); }
-          75% { transform: rotate(-5deg); }
+          0%,
+          100% {
+            transform: rotate(0deg);
+          }
+          25% {
+            transform: rotate(5deg);
+          }
+          75% {
+            transform: rotate(-5deg);
+          }
         }
-        
+
         @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(180deg); }
+          0%,
+          100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-20px) rotate(180deg);
+          }
         }
-        
+
         @keyframes slideInUp {
-          from { transform: translateY(30px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
+          from {
+            transform: translateY(30px);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
         }
-        
+
         @keyframes slideInRight {
-          from { transform: translateX(30px); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
+          from {
+            transform: translateX(30px);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
         }
-        
+
         @keyframes selectedPulse {
-          0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.5); }
-          50% { box-shadow: 0 0 30px rgba(255,215,0,0.8); }
+          0%,
+          100% {
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+          }
+          50% {
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+          }
         }
-        
+
         @keyframes successPop {
-          0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-          100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+          0% {
+            transform: translate(-50%, -50%) scale(0.5);
+            opacity: 0;
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+          }
         }
-        
+
         @keyframes confettiFall {
-          0% { transform: translateY(-100vh) rotate(0deg); }
-          100% { transform: translateY(100vh) rotate(360deg); }
+          0% {
+            transform: translateY(-100vh) rotate(0deg);
+          }
+          100% {
+            transform: translateY(100vh) rotate(360deg);
+          }
         }
-        
+
         @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-5px); }
-          75% { transform: translateX(5px); }
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          25% {
+            transform: translateX(-5px);
+          }
+          75% {
+            transform: translateX(5px);
+          }
         }
-        
+
         .image-item:hover {
           transform: scale(1.1) rotate(3deg);
-          box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
-        
+
         .button:hover {
           transform: translateY(-3px);
-          box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+          box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
         }
-        
+
         .task-item:hover {
-          background-color: rgba(237,242,247,0.9);
+          background-color: rgba(237, 242, 247, 0.9);
           border-color: #667eea;
           transform: translateX(5px);
         }
-        
+
         .delete-button:hover {
           background-color: #fed7d7;
           transform: scale(1.1);
         }
-        
+
         .card:hover {
           transform: translateY(-5px);
-          box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+          box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
         }
-        
-        input:focus, .datePicker:focus {
+
+        input:focus,
+        .datePicker:focus {
           border-color: #667eea;
-          box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
           transform: scale(1.02);
         }
-        
+
         .shake {
           animation: shake 0.5s ease-in-out;
         }
-        
+
         @media (min-width: 1024px) {
           .grid-container {
             grid-template-columns: 2fr 1fr;
@@ -835,15 +972,62 @@ const InsertTask = () => {
 
       {/* Background floating elements */}
       <div style={styles.backgroundElements}>
-        <div style={{ ...styles.floatingElement, top: "10%", left: "10%", animationDelay: "0s" }}>🎨</div>
-        <div style={{ ...styles.floatingElement, top: "20%", right: "15%", animationDelay: "1s" }}>⭐</div>
-        <div style={{ ...styles.floatingElement, bottom: "30%", left: "5%", animationDelay: "2s" }}>🎯</div>
-        <div style={{ ...styles.floatingElement, bottom: "20%", right: "10%", animationDelay: "3s" }}>🏆</div>
-        <div style={{ ...styles.floatingElement, top: "50%", left: "3%", animationDelay: "4s" }}>🌟</div>
+        <div
+          style={{
+            ...styles.floatingElement,
+            top: "10%",
+            left: "10%",
+            animationDelay: "0s",
+          }}
+        >
+          🎨
+        </div>
+        <div
+          style={{
+            ...styles.floatingElement,
+            top: "20%",
+            right: "15%",
+            animationDelay: "1s",
+          }}
+        >
+          ⭐
+        </div>
+        <div
+          style={{
+            ...styles.floatingElement,
+            bottom: "30%",
+            left: "5%",
+            animationDelay: "2s",
+          }}
+        >
+          🎯
+        </div>
+        <div
+          style={{
+            ...styles.floatingElement,
+            bottom: "20%",
+            right: "10%",
+            animationDelay: "3s",
+          }}
+        >
+          🏆
+        </div>
+        <div
+          style={{
+            ...styles.floatingElement,
+            top: "50%",
+            left: "3%",
+            animationDelay: "4s",
+          }}
+        >
+          🌟
+        </div>
       </div>
 
       {/* Success message */}
-      {showSuccess && <div style={styles.successMessage}>🎉 Awesome! Task added! 🎉</div>}
+      {showSuccess && (
+        <div style={styles.successMessage}>🎉 Awesome! Task added! 🎉</div>
+      )}
 
       {/* Confetti */}
       {showConfetti && (
@@ -867,12 +1051,21 @@ const InsertTask = () => {
         <div style={styles.header}>
           <div style={styles.avatarContainer}>
             <div style={styles.avatarWrapper}>
-              <img src={selectedKid.selectedAvatar || "/placeholder.svg"} alt="Kid Avatar" style={styles.avatar} />
+              <img
+                src={selectedKid.selectedAvatar || "/placeholder.svg"}
+                alt="Kid Avatar"
+                style={styles.avatar}
+              />
               <div style={styles.statusDot}></div>
             </div>
             <div>
-              <h1 style={styles.title}>🎮 Task Creator for {selectedKid ? selectedKid.name : "Loading..."} 🎮</h1>
-              <p style={styles.subtitle}>✨ Create amazing daily adventures! ✨</p>
+              <h1 style={styles.title}>
+                🎮 Task Creator for{" "}
+                {selectedKid ? selectedKid.name : "Loading..."} 🎮
+              </h1>
+              <p style={styles.subtitle}>
+                ✨ Create amazing daily adventures! ✨
+              </p>
             </div>
           </div>
         </div>
@@ -891,7 +1084,11 @@ const InsertTask = () => {
             {/* Date Picker Card */}
             <div style={styles.card} className="card">
               <div style={styles.cardHeader}>
-                <div style={{ ...styles.iconWrapper, backgroundColor: "#dbeafe" }}>📅</div>
+                <div
+                  style={{ ...styles.iconWrapper, backgroundColor: "#dbeafe" }}
+                >
+                  📅
+                </div>
                 <h3 style={styles.cardTitle}>🗓️ Pick Your Adventure Day</h3>
               </div>
               <div style={styles.datePickerContainer}>
@@ -910,10 +1107,14 @@ const InsertTask = () => {
             {/* Image Selection Card */}
             <div style={styles.card} className="card">
               <div style={styles.cardHeader}>
-                <div style={{ ...styles.iconWrapper, backgroundColor: "#f3e8ff" }}>🎨</div>
+                <div
+                  style={{ ...styles.iconWrapper, backgroundColor: "#f3e8ff" }}
+                >
+                  🎨
+                </div>
                 <h3 style={styles.cardTitle}>🖼️ Choose Your Mission Icon</h3>
               </div>
-              <div style={styles.imageGrid}>
+              <div style={styles.imageGrid} className="image-carousel">
                 {selectedKid &&
                   fetchImages(gender).map((imgPath, index) => (
                     <img
@@ -922,7 +1123,9 @@ const InsertTask = () => {
                       alt={`Task ${index + 1}`}
                       style={{
                         ...styles.imageItem,
-                        ...(selectedImage === imgPath ? styles.selectedImage : {}),
+                        ...(selectedImage === imgPath
+                          ? styles.selectedImage
+                          : {}),
                       }}
                       className="image-item"
                       onClick={() => handleImageClick(imgPath)}
@@ -933,11 +1136,18 @@ const InsertTask = () => {
 
             {/* Task Description Card */}
             <div
-              style={{ ...styles.card, ...(isShaking ? { animation: "shake 0.5s ease-in-out" } : {}) }}
+              style={{
+                ...styles.card,
+                ...(isShaking ? { animation: "shake 0.5s ease-in-out" } : {}),
+              }}
               className="card"
             >
               <div style={styles.cardHeader}>
-                <div style={{ ...styles.iconWrapper, backgroundColor: "#dcfce7" }}>✏️</div>
+                <div
+                  style={{ ...styles.iconWrapper, backgroundColor: "#dcfce7" }}
+                >
+                  ✏️
+                </div>
                 <h3 style={styles.cardTitle}>📝 Describe Your Mission</h3>
               </div>
               <input
@@ -948,7 +1158,11 @@ const InsertTask = () => {
                 placeholder="What awesome task will you do? 🚀"
                 required
               />
-              <button onClick={handleAddTask} style={styles.addButton} className="button">
+              <button
+                onClick={handleAddTask}
+                style={styles.addButton}
+                className="button"
+              >
                 ➕ Add to My Adventure List!
               </button>
             </div>
@@ -959,7 +1173,11 @@ const InsertTask = () => {
             {/* Tasks List Card */}
             <div style={styles.card} className="card">
               <div style={styles.cardHeader}>
-                <div style={{ ...styles.iconWrapper, backgroundColor: "#fed7aa" }}>📋</div>
+                <div
+                  style={{ ...styles.iconWrapper, backgroundColor: "#fed7aa" }}
+                >
+                  📋
+                </div>
                 <h3 style={styles.cardTitle}>🏆 My Adventure List</h3>
                 <span style={styles.badge}>{tasks.length}</span>
               </div>
@@ -968,13 +1186,25 @@ const InsertTask = () => {
                 {tasks.length === 0 ? (
                   <div style={styles.emptyState}>
                     <div style={styles.emptyEmoji}>🎯</div>
-                    <p style={{ fontSize: "16px", fontWeight: "bold" }}>Ready for your first mission?</p>
-                    <p style={{ fontSize: "14px" }}>Add a task above to get started! 🚀</p>
+                    <p style={{ fontSize: "16px", fontWeight: "bold" }}>
+                      Ready for your first mission?
+                    </p>
+                    <p style={{ fontSize: "14px" }}>
+                      Add a task above to get started! 🚀
+                    </p>
                   </div>
                 ) : (
                   tasks.map((task, index) => (
-                    <div key={index} style={styles.taskItem} className="task-item">
-                      <img src={task.image || "/placeholder.svg"} alt="Task" style={styles.taskImage} />
+                    <div
+                      key={index}
+                      style={styles.taskItem}
+                      className="task-item"
+                    >
+                      <img
+                        src={task.image || "/placeholder.svg"}
+                        alt="Task"
+                        style={styles.taskImage}
+                      />
                       <div style={styles.taskDetails}>
                         <p style={styles.taskDescription}>{task.description}</p>
                         <p style={styles.taskDate}>📅 {task.date}</p>
@@ -993,18 +1223,32 @@ const InsertTask = () => {
             </div>
 
             {/* Action Buttons */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "15px" }}
+            >
               {tasks.length > 0 && (
-                <button onClick={handleSaveTasks} style={styles.saveButton} className="button">
+                <button
+                  onClick={handleSaveTasks}
+                  style={styles.saveButton}
+                  className="button"
+                >
                   💾 Save My Epic Adventures!
                 </button>
               )}
 
-              <button onClick={handleSeeCurrentTasks} style={styles.outlineButton} className="button">
+              <button
+                onClick={handleSeeCurrentTasks}
+                style={styles.outlineButton}
+                className="button"
+              >
                 📋 Check My Current Missions
               </button>
 
-              <button onClick={handleHomeClick} style={styles.outlineButton} className="button">
+              <button
+                onClick={handleHomeClick}
+                style={styles.outlineButton}
+                className="button"
+              >
                 🏠 Back to Home Base
               </button>
             </div>
@@ -1012,7 +1256,7 @@ const InsertTask = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default InsertTask
+export default InsertTask;

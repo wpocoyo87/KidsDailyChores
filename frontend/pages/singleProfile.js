@@ -18,52 +18,55 @@ const KidProfilePage = () => {
 
   // Fun characters for animation
   const characters = ["🌟", "⭐", "✨", "🎯", "🏆", "🎪", "🎨", "🚀"];
-  
+
   // Calculate age from birth date
   const calculateAge = (birthDate, existingAge) => {
     // If we have existing age in the database, use it as fallback
     if (!birthDate && existingAge !== undefined && existingAge !== null) {
       return existingAge;
     }
-    
+
     if (!birthDate) return "Unknown";
-    
+
     const today = new Date();
     const birth = new Date(birthDate);
-    
+
     // Check if the date is valid
     if (isNaN(birth.getTime())) {
       return existingAge || "Unknown";
     }
-    
+
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
-    
+
     return age;
   };
-  
+
   // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return "Not set";
-    
+
     const date = new Date(dateString);
-    
+
     // Check if the date is valid
     if (isNaN(date.getTime())) {
       return "Invalid date";
     }
-    
-    return date.toLocaleDateString('en-MY', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
+
+    return date.toLocaleDateString("en-MY", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
     });
   };
-  
+
   // Character rotation effect
   useEffect(() => {
     const interval = setInterval(() => {
@@ -90,7 +93,8 @@ const KidProfilePage = () => {
           frequency = 600;
       }
 
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -101,7 +105,10 @@ const KidProfilePage = () => {
       oscillator.type = "sine";
 
       gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.3
+      );
 
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.3);
@@ -135,13 +142,13 @@ const KidProfilePage = () => {
         );
         setUser(response.data);
         setSelectedKid(selectedKidValue);
-        
+
         // Debug: Log the selected kid data to see what fields are available
         console.log("Selected Kid Data:", selectedKidValue);
         console.log("Birth Date:", selectedKidValue?.birthDate);
         console.log("Age field:", selectedKidValue?.age);
         console.log("All fields:", Object.keys(selectedKidValue || {}));
-        
+
         // Fetch the accumulated points for the selected kid
         const pointsResponse = await axios.get(
           `${apiUrl}/kids/${selectedKidValue._id}/points`,
@@ -189,21 +196,36 @@ const KidProfilePage = () => {
   }
 
   return (
-    <>
+    <div>
       <style jsx global>{`
         @keyframes gradientShift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
         }
-        
+
         @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          25% { transform: translateY(-20px) rotate(5deg); }
-          50% { transform: translateY(-10px) rotate(-5deg); }
-          75% { transform: translateY(-15px) rotate(3deg); }
+          0%,
+          100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          25% {
+            transform: translateY(-20px) rotate(5deg);
+          }
+          50% {
+            transform: translateY(-10px) rotate(-5deg);
+          }
+          75% {
+            transform: translateY(-15px) rotate(3deg);
+          }
         }
-        
+
         @keyframes slideInUp {
           from {
             opacity: 0;
@@ -214,65 +236,99 @@ const KidProfilePage = () => {
             transform: translateY(0);
           }
         }
-        
+
         @keyframes bounce {
-          0%, 20%, 50%, 80%, 100% { transform: translateY(0) scale(1); }
-          40% { transform: translateY(-10px) scale(1.1); }
-          60% { transform: translateY(-5px) scale(1.05); }
+          0%,
+          20%,
+          50%,
+          80%,
+          100% {
+            transform: translateY(0) scale(1);
+          }
+          40% {
+            transform: translateY(-10px) scale(1.1);
+          }
+          60% {
+            transform: translateY(-5px) scale(1.05);
+          }
         }
-        
+
         @keyframes avatarGlow {
-          0% { box-shadow: 0 0 20px rgba(255, 107, 107, 0.6); }
-          50% { box-shadow: 0 0 40px rgba(78, 205, 196, 0.8); }
-          100% { box-shadow: 0 0 20px rgba(255, 107, 107, 0.6); }
+          0% {
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.6);
+          }
+          50% {
+            box-shadow: 0 0 40px rgba(78, 205, 196, 0.8);
+          }
+          100% {
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.6);
+          }
         }
-        
+
         @keyframes pointsPulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.1); }
-          100% { transform: scale(1); }
+          0% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.1);
+          }
+          100% {
+            transform: scale(1);
+          }
         }
-        
+
         @keyframes buttonHover {
-          0% { transform: translateY(0); }
-          100% { transform: translateY(-3px); }
+          0% {
+            transform: translateY(0);
+          }
+          100% {
+            transform: translateY(-3px);
+          }
         }
-        
+
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
-        
+
         @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
         }
-        
+
         .button-hover {
           transform: translateY(-3px) !important;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
         }
-        
+
         .stat-card-hover {
           transform: scale(1.05) !important;
-          box-shadow: 0 15px 30px rgba(0,0,0,0.2) !important;
+          box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2) !important;
         }
-        
+
         /* Remove underlines from all links */
         a {
           text-decoration: none !important;
         }
-        
+
         /* Ensure buttons inside links don't have underlines */
         a button {
           text-decoration: none !important;
         }
       `}</style>
-      
+
       <div style={styles.body}>
         {/* Animated Background */}
         <div style={styles.animatedBg}></div>
-        
+
         {/* Floating Elements */}
         <div style={styles.floatingElements}>
           {[...Array(15)].map((_, i) => (
@@ -286,7 +342,7 @@ const KidProfilePage = () => {
                 animationDuration: `${6 + Math.random() * 4}s`,
               }}
             >
-              {['⭐', '🎈', '🌟', '✨', '🎯'][Math.floor(Math.random() * 5)]}
+              {["⭐", "🎈", "🌟", "✨", "🎯"][Math.floor(Math.random() * 5)]}
             </div>
           ))}
         </div>
@@ -295,14 +351,12 @@ const KidProfilePage = () => {
           {/* Header Section */}
           <div style={styles.header}>
             <h1 style={styles.title}>
-              {selectedKid.name}&apos;s Super Profile! 
+              {selectedKid.name}&apos;s Super Profile!
               <span style={styles.characterDisplay}>
                 {characters[currentCharacter]}
               </span>
             </h1>
-            <div style={styles.subtitle}>
-              Welcome back, superstar! 🌟
-            </div>
+            <div style={styles.subtitle}>Welcome back, superstar! 🌟</div>
           </div>
 
           {/* Avatar Section */}
@@ -314,32 +368,45 @@ const KidProfilePage = () => {
                 style={styles.avatar}
               />
               <div style={styles.avatarBadge}>
-                {selectedKid.gender === 'boy' ? '👦' : '👧'}
+                {selectedKid.gender === "boy" ? "👦" : "👧"}
               </div>
             </div>
           </div>
 
           {/* Stats Cards */}
           <div style={styles.statsContainer}>
-            <div 
+            <div
               style={styles.statCard}
-              onMouseEnter={(e) => e.currentTarget.classList.add('stat-card-hover')}
-              onMouseLeave={(e) => e.currentTarget.classList.remove('stat-card-hover')}
+              onMouseEnter={(e) =>
+                e.currentTarget.classList.add("stat-card-hover")
+              }
+              onMouseLeave={(e) =>
+                e.currentTarget.classList.remove("stat-card-hover")
+              }
             >
               <div style={styles.statIcon}>🎂</div>
               <div style={styles.statLabel}>Age</div>
               <div style={styles.statValue}>
                 {(() => {
-                  const calculatedAge = calculateAge(selectedKid.birthDate, selectedKid.age);
-                  return calculatedAge === "Unknown" ? "Unknown" : `${calculatedAge} years old`;
+                  const calculatedAge = calculateAge(
+                    selectedKid.birthDate,
+                    selectedKid.age
+                  );
+                  return calculatedAge === "Unknown"
+                    ? "Unknown"
+                    : `${calculatedAge} years old`;
                 })()}
               </div>
             </div>
-            
-            <div 
+
+            <div
               style={styles.statCard}
-              onMouseEnter={(e) => e.currentTarget.classList.add('stat-card-hover')}
-              onMouseLeave={(e) => e.currentTarget.classList.remove('stat-card-hover')}
+              onMouseEnter={(e) =>
+                e.currentTarget.classList.add("stat-card-hover")
+              }
+              onMouseLeave={(e) =>
+                e.currentTarget.classList.remove("stat-card-hover")
+              }
             >
               <div style={styles.statIcon}>📅</div>
               <div style={styles.statLabel}>Birthday</div>
@@ -347,70 +414,142 @@ const KidProfilePage = () => {
                 {formatDate(selectedKid.birthDate)}
               </div>
             </div>
-            
-            <div 
-              style={{...styles.statCard, ...styles.pointsCard}}
-              onMouseEnter={(e) => e.currentTarget.classList.add('stat-card-hover')}
-              onMouseLeave={(e) => e.currentTarget.classList.remove('stat-card-hover')}
+
+            <div
+              style={{ ...styles.statCard, ...styles.pointsCard }}
+              onMouseEnter={(e) =>
+                e.currentTarget.classList.add("stat-card-hover")
+              }
+              onMouseLeave={(e) =>
+                e.currentTarget.classList.remove("stat-card-hover")
+              }
               onClick={() => playSound("points")}
             >
               <div style={styles.statIcon}>⭐</div>
               <div style={styles.statLabel}>Stars Earned</div>
-              <div style={{...styles.statValue, ...styles.pointsValue}}>{points}</div>
+              <div style={{ ...styles.statValue, ...styles.pointsValue }}>
+                {points}
+              </div>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div style={styles.buttonGrid}>
-            <Link href="/insert-task" style={{textDecoration: "none"}}>
-              <button 
-                style={{...styles.actionButton, ...styles.insertTaskBtn}}
-                onMouseEnter={(e) => e.target.classList.add('button-hover')}
-                onMouseLeave={(e) => e.target.classList.remove('button-hover')}
-                onClick={() => handleButtonClick('insert-task')}
+          {/* Action Buttons - Row 1 */}
+          <div
+            style={{
+              display: "flex",
+              gap: "16px",
+              justifyContent: "center",
+              marginTop: "24px",
+            }}
+          >
+            <Link href="/insert-task" style={{ textDecoration: "none" }}>
+              <button
+                style={{ ...styles.actionButton, ...styles.insertTaskBtn }}
+                onMouseEnter={(e) => e.target.classList.add("button-hover")}
+                onMouseLeave={(e) => e.target.classList.remove("button-hover")}
+                onClick={() => handleButtonClick("insert-task")}
               >
                 <span style={styles.buttonIcon}>➕</span>
                 <span>Add New Task</span>
               </button>
             </Link>
-            
-            <Link href="/listTask" style={{textDecoration: "none"}}>
-              <button 
-                style={{...styles.actionButton, ...styles.checkTaskBtn}}
-                onMouseEnter={(e) => e.target.classList.add('button-hover')}
-                onMouseLeave={(e) => e.target.classList.remove('button-hover')}
-                onClick={() => handleButtonClick('list-task')}
+            <Link href="/listTask" style={{ textDecoration: "none" }}>
+              <button
+                style={{ ...styles.actionButton, ...styles.checkTaskBtn }}
+                onMouseEnter={(e) => e.target.classList.add("button-hover")}
+                onMouseLeave={(e) => e.target.classList.remove("button-hover")}
+                onClick={() => handleButtonClick("list-task")}
               >
                 <span style={styles.buttonIcon}>📋</span>
                 <span>Check Tasks</span>
               </button>
             </Link>
-            
-            <Link href="/choosekids" style={{textDecoration: "none"}}>
-              <button 
-                style={{...styles.actionButton, ...styles.changeKidBtn}}
-                onMouseEnter={(e) => e.target.classList.add('button-hover')}
-                onMouseLeave={(e) => e.target.classList.remove('button-hover')}
-                onClick={() => handleButtonClick('change-kid')}
+          </div>
+
+          {/* Action Buttons - Row 2: Switch Kid & Logout */}
+          <div
+            style={{
+              display: "flex",
+              gap: "16px",
+              justifyContent: "center",
+              marginTop: "16px",
+            }}
+          >
+            <Link href="/choosekids" style={{ textDecoration: "none" }}>
+              <button
+                style={{ ...styles.actionButton, ...styles.changeKidBtn }}
+                onMouseEnter={(e) => e.target.classList.add("button-hover")}
+                onMouseLeave={(e) => e.target.classList.remove("button-hover")}
+                onClick={() => handleButtonClick("change-kid")}
               >
                 <span style={styles.buttonIcon}>🔄</span>
                 <span>Switch Kid</span>
               </button>
             </Link>
-            
-            <button 
-              style={{...styles.actionButton, ...styles.logoutBtn}}
-              onMouseEnter={(e) => e.target.classList.add('button-hover')}
-              onMouseLeave={(e) => e.target.classList.remove('button-hover')}
+            <button
+              style={{ ...styles.actionButton, ...styles.logoutBtn }}
+              onMouseEnter={(e) => e.target.classList.add("button-hover")}
+              onMouseLeave={(e) => e.target.classList.remove("button-hover")}
               onClick={handleLogout}
             >
               <span style={styles.buttonIcon}>👋</span>
               <span>Logout</span>
             </button>
           </div>
+
+          {/* New Black Buttons Row */}
+          <div
+            style={{
+              display: "flex",
+              gap: "16px",
+              justifyContent: "center",
+              marginTop: "18px",
+              flexDirection: "row",
+              textAlign: "center",
+            }}
+            className="black-btn-row"
+          >
+            <Link
+              href="/dailyMilestoneReward"
+              style={{ textDecoration: "none" }}
+            >
+              <button style={styles.blackBtn} className="black-btn">
+                Daily Milestone Reward
+              </button>
+            </Link>
+            <Link
+              href="/mainMilestoneReward"
+              style={{ textDecoration: "none" }}
+            >
+              <button style={styles.blackBtn} className="black-btn">
+                Main Milestone Reward
+              </button>
+            </Link>
+            <Link href="/historyReward" style={{ textDecoration: "none" }}>
+              <button style={styles.blackBtn} className="black-btn">
+                History Reward
+              </button>
+            </Link>
+          </div>
         </div>
       </div>
-    </>
+      <style jsx>{`
+        @media (max-width: 600px) {
+          .black-btn-row {
+            flex-direction: column !important;
+            gap: 12px !important;
+            align-items: center !important;
+            text-align: center !important;
+          }
+          .black-btn {
+            width: 100% !important;
+            max-width: 350px;
+            margin-left: auto;
+            margin-right: auto;
+          }
+        }
+      `}</style>
+    </div>
   );
 };
 
@@ -435,7 +574,8 @@ const styles = {
     left: 0,
     width: "100%",
     height: "100%",
-    background: "linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #dda0dd)",
+    background:
+      "linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #dda0dd)",
     backgroundSize: "600% 600%",
     animation: "gradientShift 20s ease infinite",
     zIndex: -2,
@@ -578,40 +718,43 @@ const styles = {
     marginTop: "30px",
   },
   actionButton: {
-    padding: "18px 25px",
-    border: "none",
-    borderRadius: "15px",
-    cursor: "pointer",
-    fontSize: "16px",
-    fontWeight: "bold",
-    transition: "all 0.3s ease",
-    outline: "none",
-    textTransform: "uppercase",
-    letterSpacing: "1px",
-    position: "relative",
-    overflow: "hidden",
+    minWidth: "180px",
+    height: "56px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: "10px",
-    textDecoration: "none",
-    color: "#fff",
+    background: "#fff",
+    color: "#222",
+    border: "none",
+    borderRadius: "12px",
+    padding: "0 24px",
+    fontWeight: "bold",
+    fontSize: "1.1rem",
+    boxShadow: "0 2px 8px #0001",
+    cursor: "pointer",
+    transition: "background 0.2s, color 0.2s",
+    outline: "none",
   },
   buttonIcon: {
     fontSize: "20px",
     animation: "bounce 2s ease-in-out infinite",
   },
   insertTaskBtn: {
-    background: "linear-gradient(45deg, #00b894, #00cec9)",
+    background: "linear-gradient(90deg, #00e0d3, #5b9df9)",
+    color: "#fff",
   },
   checkTaskBtn: {
-    background: "linear-gradient(45deg, #6c5ce7, #a29bfe)",
+    background: "linear-gradient(90deg, #7f7fd5, #86a8e7, #91eac9)",
+    color: "#fff",
   },
   changeKidBtn: {
-    background: "linear-gradient(45deg, #fd79a8, #fdcb6e)",
+    background: "linear-gradient(90deg, #f7971e, #ffd200)",
+    color: "#fff",
   },
   logoutBtn: {
-    background: "linear-gradient(45deg, #e17055, #e84393)",
+    background: "linear-gradient(90deg, #ff5858, #f09819)",
+    color: "#fff",
   },
   loadingContainer: {
     display: "flex",
@@ -636,6 +779,27 @@ const styles = {
     color: "#7f8c8d",
     fontWeight: "bold",
     animation: "fadeIn 2s ease-in-out infinite",
+  },
+  blackBtn: {
+    background: "#222",
+    color: "#fff",
+    border: "none",
+    borderRadius: "12px",
+    minWidth: "180px",
+    height: "56px",
+    padding: "0 24px",
+    fontWeight: "bold",
+    fontSize: "1.1rem",
+    boxShadow: "0 2px 8px #0003",
+    cursor: "pointer",
+    transition: "background 0.2s",
+    marginBottom: 0,
+    marginTop: 0,
+    outline: "none",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "10px",
   },
 };
 

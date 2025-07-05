@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 
 const LoginPage = () => {
   const router = useRouter();
@@ -643,21 +644,22 @@ const LoginPage = () => {
         >
           <p style={{ margin: "5px 0" }}>
             Don&apos;t have an account?{" "}
-            <a
-              href="/register"
-              style={{
-                color: "#667eea",
-                textDecoration: "none",
-                fontWeight: "bold",
-                cursor: "pointer",
-              }}
-              onMouseEnter={(e) =>
-                (e.target.style.textDecoration = "underline")
-              }
-              onMouseLeave={(e) => (e.target.style.textDecoration = "none")}
-            >
-              Register here
-            </a>
+            <Link href="/register" legacyBehavior>
+              <a
+                style={{
+                  color: "#667eea",
+                  textDecoration: "none",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.textDecoration = "underline")
+                }
+                onMouseLeave={(e) => (e.target.style.textDecoration = "none")}
+              >
+                Register here
+              </a>
+            </Link>
           </p>
           <p style={{ margin: "5px 0" }}>
             Forgot your password?{" "}

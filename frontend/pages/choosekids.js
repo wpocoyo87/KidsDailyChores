@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "@/utils/axiosInstance";
 import { useRouter } from "next/router";
 
 const ChooseKidsPage = () => {
@@ -21,7 +21,7 @@ const ChooseKidsPage = () => {
   const [currentCharacter, setCurrentCharacter] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  
+
   const characters = ["🌟", "⭐", "✨", "🎯", "🏆", "🎪", "🎨", "🚀"];
 
   useEffect(() => {
@@ -32,13 +32,21 @@ const ChooseKidsPage = () => {
   }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedKids = localStorage.getItem("kids");
-      if (storedKids) {
-        setKids(JSON.parse(storedKids));
+    // Fetch kids from backend (MongoDB) instead of localStorage
+    const fetchKids = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get("/kids", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        setKids(res.data);
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to fetch kids from server.");
+        setLoading(false);
       }
-      setLoading(false);
-    }
+    };
+    fetchKids();
   }, []);
 
   useEffect(() => {
@@ -83,13 +91,13 @@ const ChooseKidsPage = () => {
 
   const handlePinSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!/^\d{4}$/.test(pin)) {
       setPinError("PIN must be exactly 4 digits");
       playErrorSound();
       return;
     }
-    
+
     if (pin !== confirmPin) {
       setPinError("PINs do not match");
       playErrorSound();
@@ -100,12 +108,12 @@ const ChooseKidsPage = () => {
     setPinError("");
 
     try {
-      const response = await axios.post(
-        `${apiUrl}/kids/${pinKid._id}/pin`,
+      const response = await api.post(
+        `/kids/${pinKid._id}/pin`,
         { pin },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
@@ -144,7 +152,8 @@ const ChooseKidsPage = () => {
   const playSuccessSound = () => {
     try {
       const audio = new Audio();
-      audio.src = "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBziR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaAAA=";
+      audio.src =
+        "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBziR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaAAA=";
       audio.play();
     } catch (e) {
       console.log("Audio play failed:", e);
@@ -154,7 +163,8 @@ const ChooseKidsPage = () => {
   const playErrorSound = () => {
     try {
       const audio = new Audio();
-      audio.src = "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBziR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaAAA=";
+      audio.src =
+        "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBziR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaAAA=";
       audio.play();
     } catch (e) {
       console.log("Audio play failed:", e);
@@ -188,15 +198,24 @@ const ChooseKidsPage = () => {
     <div style={styles.body}>
       <style jsx global>{`
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
-        
+
         @keyframes bounce {
-          0%, 20%, 53%, 80%, 100% {
+          0%,
+          20%,
+          53%,
+          80%,
+          100% {
             transform: translateY(0);
           }
-          40%, 43% {
+          40%,
+          43% {
             transform: translateY(-20px);
           }
           70% {
@@ -206,7 +225,7 @@ const ChooseKidsPage = () => {
             transform: translateY(-4px);
           }
         }
-        
+
         @keyframes slideInUp {
           from {
             opacity: 0;
@@ -217,12 +236,16 @@ const ChooseKidsPage = () => {
             transform: translateY(0);
           }
         }
-        
+
         @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
         }
-        
+
         @keyframes modalSlideIn {
           from {
             opacity: 0;
@@ -233,32 +256,46 @@ const ChooseKidsPage = () => {
             transform: translateY(0) scale(1);
           }
         }
-        
+
         @keyframes pulse {
           0% {
             transform: scale(1);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
           }
           50% {
             transform: scale(1.05);
-            box-shadow: 0 15px 35px rgba(255,215,0,0.4);
+            box-shadow: 0 15px 35px rgba(255, 215, 0, 0.4);
           }
           100% {
             transform: scale(1);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
           }
         }
-        
+
         @keyframes rainbow {
-          0% { color: #667eea; }
-          16% { color: #764ba2; }
-          32% { color: #f093fb; }
-          48% { color: #f5576c; }
-          64% { color: #4facfe; }
-          80% { color: #00f2fe; }
-          100% { color: #667eea; }
+          0% {
+            color: #667eea;
+          }
+          16% {
+            color: #764ba2;
+          }
+          32% {
+            color: #f093fb;
+          }
+          48% {
+            color: #f5576c;
+          }
+          64% {
+            color: #4facfe;
+          }
+          80% {
+            color: #00f2fe;
+          }
+          100% {
+            color: #667eea;
+          }
         }
-        
+
         @keyframes confettiFall {
           0% {
             transform: translateY(-100vh) rotate(0deg);
@@ -269,45 +306,45 @@ const ChooseKidsPage = () => {
             opacity: 0;
           }
         }
-        
+
         .kidCard:hover {
           transform: translateY(-5px) scale(1.02);
-          box-shadow: 0 20px 40px rgba(0,0,0,0.2) !important;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2) !important;
         }
-        
+
         .kidCard:hover .avatarGlow {
           opacity: 0.3;
         }
-        
+
         .pinButton:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(102,126,234,0.6);
+          box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
         }
-        
+
         .addButton:hover {
           transform: translateY(-2px);
-          box-shadow: 0 12px 30px rgba(72,187,120,0.6);
+          box-shadow: 0 12px 30px rgba(72, 187, 120, 0.6);
         }
-        
+
         .logoutButton:hover {
           transform: translateY(-2px);
-          box-shadow: 0 12px 30px rgba(229,62,62,0.6);
+          box-shadow: 0 12px 30px rgba(229, 62, 62, 0.6);
         }
-        
+
         .submitButton:hover {
           background-color: #5a67d8;
         }
-        
+
         .cancelButton:hover {
           background-color: #cbd5e0;
         }
-        
+
         .pinInput:focus {
           border-color: #667eea;
-          box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
       `}</style>
-      
+
       {showConfetti && (
         <div style={styles.confetti}>
           {[...Array(20)].map((_, i) => (
@@ -325,7 +362,7 @@ const ChooseKidsPage = () => {
           ))}
         </div>
       )}
-      
+
       <div style={styles.formContainer}>
         <div style={styles.header}>
           <div style={styles.characterContainer}>
@@ -346,7 +383,9 @@ const ChooseKidsPage = () => {
             <div style={styles.emptyState}>
               <div style={styles.emptyEmoji}>👶</div>
               <p style={styles.emptyText}>No kids registered yet!</p>
-              <p style={styles.emptySubtext}>Add your first kid to get started 🎯</p>
+              <p style={styles.emptySubtext}>
+                Add your first kid to get started 🎯
+              </p>
             </div>
           ) : (
             kids.map((kid, index) => (
@@ -355,15 +394,20 @@ const ChooseKidsPage = () => {
                 style={{
                   ...styles.kidCard,
                   animationDelay: `${index * 0.1}s`,
-                  border: selectedKid && selectedKid._id === kid._id
-                    ? "3px solid #FFD700"
-                    : "3px solid rgba(102,126,234,0.3)",
-                  boxShadow: selectedKid && selectedKid._id === kid._id
-                    ? "0 15px 35px rgba(255,215,0,0.4)"
-                    : "0 10px 25px rgba(0,0,0,0.1)",
+                  border:
+                    selectedKid && selectedKid._id === kid._id
+                      ? "3px solid #FFD700"
+                      : "3px solid rgba(102,126,234,0.3)",
+                  boxShadow:
+                    selectedKid && selectedKid._id === kid._id
+                      ? "0 15px 35px rgba(255,215,0,0.4)"
+                      : "0 10px 25px rgba(0,0,0,0.1)",
                 }}
               >
-                <div style={styles.kidCardInner} onClick={() => handleSelection(kid)}>
+                <div
+                  style={styles.kidCardInner}
+                  onClick={() => handleSelection(kid)}
+                >
                   <div style={styles.avatarContainer}>
                     <img
                       src={kid.selectedAvatar || "/images/default-avatar.png"}
@@ -372,7 +416,7 @@ const ChooseKidsPage = () => {
                     />
                     <div style={styles.avatarGlow}></div>
                   </div>
-                  
+
                   <div style={styles.kidInfo}>
                     <h3 style={styles.kidName}>{kid.name}</h3>
                     <div style={styles.kidStats}>
@@ -382,7 +426,9 @@ const ChooseKidsPage = () => {
                       </div>
                       <div style={styles.statItem}>
                         <span style={styles.statIcon}>⭐</span>
-                        <span style={styles.statValue}>{kid.points || 0} stars</span>
+                        <span style={styles.statValue}>
+                          {kid.points || 0} stars
+                        </span>
                       </div>
                       <div style={styles.statItem}>
                         <span style={styles.statIcon}>👤</span>
@@ -391,7 +437,7 @@ const ChooseKidsPage = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div style={styles.kidActions}>
                   <button
                     onClick={(e) => {
@@ -416,6 +462,28 @@ const ChooseKidsPage = () => {
             👋 Logout
           </button>
         </div>
+        {/* Go to Main Page button */}
+        <div style={{ textAlign: "center", marginTop: "20px" }}>
+          <button
+            onClick={() => router.push("/")}
+            style={{
+              fontFamily: "Comic Sans MS",
+              padding: "15px 30px",
+              backgroundColor: "#f6ad55",
+              color: "#fff",
+              border: "none",
+              borderRadius: "25px",
+              cursor: "pointer",
+              fontSize: "16px",
+              fontWeight: "bold",
+              transition: "all 0.3s ease",
+              boxShadow: "0 8px 25px rgba(246,173,85,0.4)",
+              marginTop: "10px",
+            }}
+          >
+            🏠 Go to Main Page
+          </button>
+        </div>
       </div>
 
       {/* PIN Modal */}
@@ -431,7 +499,7 @@ const ChooseKidsPage = () => {
                 ❌
               </button>
             </div>
-            
+
             <form onSubmit={handlePinSubmit} style={styles.pinForm}>
               <div style={styles.inputGroup}>
                 <label style={styles.label}>Enter 4-digit PIN:</label>
@@ -444,7 +512,7 @@ const ChooseKidsPage = () => {
                   placeholder="• • • •"
                 />
               </div>
-              
+
               <div style={styles.inputGroup}>
                 <label style={styles.label}>Confirm PIN:</label>
                 <input
@@ -456,19 +524,13 @@ const ChooseKidsPage = () => {
                   placeholder="• • • •"
                 />
               </div>
-              
-              {pinError && (
-                <div style={styles.errorMessage}>
-                  ⚠️ {pinError}
-                </div>
-              )}
-              
+
+              {pinError && <div style={styles.errorMessage}>⚠️ {pinError}</div>}
+
               {pinSuccess && (
-                <div style={styles.successMessage}>
-                  ✅ {pinSuccess}
-                </div>
+                <div style={styles.successMessage}>✅ {pinSuccess}</div>
               )}
-              
+
               <div style={styles.modalActions}>
                 <button
                   type="submit"
@@ -497,7 +559,8 @@ const styles = {
   body: {
     fontFamily: "Comic Sans MS",
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
+    background:
+      "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -505,20 +568,21 @@ const styles = {
     position: "relative",
     overflow: "hidden",
   },
-  
+
   loadingContainer: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
+    background:
+      "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
   },
-  
+
   loadingContent: {
     textAlign: "center",
     color: "white",
   },
-  
+
   loadingSpinner: {
     width: "60px",
     height: "60px",
@@ -528,27 +592,28 @@ const styles = {
     animation: "spin 1s linear infinite",
     margin: "0 auto 20px",
   },
-  
+
   loadingEmoji: {
     fontSize: "3rem",
     display: "block",
     marginBottom: "15px",
     animation: "bounce 1s infinite",
   },
-  
+
   loadingText: {
     fontSize: "18px",
     fontWeight: "bold",
   },
-  
+
   errorContainer: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
+    background:
+      "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
   },
-  
+
   errorContent: {
     textAlign: "center",
     color: "white",
@@ -556,17 +621,17 @@ const styles = {
     padding: "30px",
     borderRadius: "20px",
   },
-  
+
   errorEmoji: {
     fontSize: "3rem",
     marginBottom: "15px",
   },
-  
+
   errorText: {
     fontSize: "18px",
     fontWeight: "bold",
   },
-  
+
   confetti: {
     position: "fixed",
     top: 0,
@@ -576,14 +641,14 @@ const styles = {
     pointerEvents: "none",
     zIndex: 1000,
   },
-  
+
   confettiPiece: {
     position: "absolute",
     fontSize: "2rem",
     animation: "confettiFall 3s linear infinite",
     willChange: "transform, opacity",
   },
-  
+
   formContainer: {
     maxWidth: "1200px",
     width: "100%",
@@ -595,22 +660,22 @@ const styles = {
     border: "3px solid rgba(255,215,0,0.3)",
     animation: "slideInUp 0.8s ease-out",
   },
-  
+
   header: {
     textAlign: "center",
     marginBottom: "30px",
   },
-  
+
   characterContainer: {
     marginBottom: "20px",
   },
-  
+
   character: {
     fontSize: "4rem",
     display: "inline-block",
     animation: "bounce 2s infinite",
   },
-  
+
   title: {
     fontSize: "2.5rem",
     fontWeight: "bold",
@@ -619,13 +684,13 @@ const styles = {
     textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
     animation: "rainbow 3s infinite",
   },
-  
+
   subtitle: {
     fontSize: "1.2rem",
     color: "#4a5568",
     fontWeight: "bold",
   },
-  
+
   welcomeMessage: {
     backgroundColor: "rgba(102,126,234,0.1)",
     padding: "15px",
@@ -634,37 +699,37 @@ const styles = {
     textAlign: "center",
     border: "2px solid rgba(102,126,234,0.2)",
   },
-  
+
   kidsContainer: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
     gap: "20px",
     marginBottom: "30px",
   },
-  
+
   emptyState: {
     textAlign: "center",
     gridColumn: "1 / -1",
     padding: "60px 20px",
     color: "#718096",
   },
-  
+
   emptyEmoji: {
     fontSize: "4rem",
     marginBottom: "20px",
     animation: "bounce 2s infinite",
   },
-  
+
   emptyText: {
     fontSize: "1.5rem",
     fontWeight: "bold",
     marginBottom: "10px",
   },
-  
+
   emptySubtext: {
     fontSize: "1rem",
   },
-  
+
   kidCard: {
     backgroundColor: "rgba(248,250,252,0.8)",
     borderRadius: "20px",
@@ -675,19 +740,19 @@ const styles = {
     overflow: "hidden",
     animation: "slideInUp 0.6s ease-out",
   },
-  
+
   kidCardInner: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     marginBottom: "15px",
   },
-  
+
   avatarContainer: {
     position: "relative",
     marginBottom: "15px",
   },
-  
+
   kidAvatar: {
     width: "100px",
     height: "100px",
@@ -698,7 +763,7 @@ const styles = {
     transition: "all 0.3s ease",
     animation: "pulse 2s infinite",
   },
-  
+
   avatarGlow: {
     position: "absolute",
     top: "-10px",
@@ -711,12 +776,12 @@ const styles = {
     transition: "opacity 0.3s ease",
     zIndex: -1,
   },
-  
+
   kidInfo: {
     textAlign: "center",
     width: "100%",
   },
-  
+
   kidName: {
     fontSize: "1.4rem",
     fontWeight: "bold",
@@ -724,13 +789,13 @@ const styles = {
     marginBottom: "15px",
     textShadow: "1px 1px 2px rgba(0,0,0,0.1)",
   },
-  
+
   kidStats: {
     display: "flex",
     flexDirection: "column",
     gap: "8px",
   },
-  
+
   statItem: {
     display: "flex",
     alignItems: "center",
@@ -741,22 +806,22 @@ const styles = {
     borderRadius: "20px",
     border: "1px solid rgba(102,126,234,0.2)",
   },
-  
+
   statIcon: {
     fontSize: "1.2rem",
   },
-  
+
   statValue: {
     fontSize: "0.9rem",
     fontWeight: "bold",
     color: "#4a5568",
   },
-  
+
   kidActions: {
     display: "flex",
     justifyContent: "center",
   },
-  
+
   pinButton: {
     backgroundColor: "#667eea",
     color: "white",
@@ -770,14 +835,14 @@ const styles = {
     fontFamily: "Comic Sans MS",
     boxShadow: "0 5px 15px rgba(102,126,234,0.4)",
   },
-  
+
   actionButtons: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "15px",
     marginTop: "20px",
   },
-  
+
   addButton: {
     fontFamily: "Comic Sans MS",
     padding: "15px 30px",
@@ -791,7 +856,7 @@ const styles = {
     transition: "all 0.3s ease",
     boxShadow: "0 8px 25px rgba(72,187,120,0.4)",
   },
-  
+
   logoutButton: {
     fontFamily: "Comic Sans MS",
     padding: "15px 30px",
@@ -805,7 +870,7 @@ const styles = {
     transition: "all 0.3s ease",
     boxShadow: "0 8px 25px rgba(229,62,62,0.4)",
   },
-  
+
   // Modal Styles
   modalOverlay: {
     position: "fixed",
@@ -820,7 +885,7 @@ const styles = {
     zIndex: 1000,
     animation: "fadeIn 0.3s ease-out",
   },
-  
+
   modal: {
     backgroundColor: "white",
     borderRadius: "20px",
@@ -830,21 +895,21 @@ const styles = {
     boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
     animation: "modalSlideIn 0.4s ease-out",
   },
-  
+
   modalHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: "20px",
   },
-  
+
   modalTitle: {
     fontSize: "1.5rem",
     fontWeight: "bold",
     color: "#2d3748",
     margin: 0,
   },
-  
+
   closeButton: {
     background: "none",
     border: "none",
@@ -852,25 +917,25 @@ const styles = {
     cursor: "pointer",
     padding: "5px",
   },
-  
+
   pinForm: {
     display: "flex",
     flexDirection: "column",
     gap: "15px",
   },
-  
+
   inputGroup: {
     display: "flex",
     flexDirection: "column",
     gap: "5px",
   },
-  
+
   label: {
     fontSize: "1rem",
     fontWeight: "bold",
     color: "#4a5568",
   },
-  
+
   pinInput: {
     padding: "15px",
     borderRadius: "12px",
@@ -882,7 +947,7 @@ const styles = {
     outline: "none",
     transition: "border-color 0.3s ease",
   },
-  
+
   errorMessage: {
     color: "#e53e3e",
     fontSize: "14px",
@@ -892,7 +957,7 @@ const styles = {
     borderRadius: "8px",
     border: "1px solid rgba(229,62,62,0.2)",
   },
-  
+
   successMessage: {
     color: "#48bb78",
     fontSize: "14px",
@@ -902,14 +967,14 @@ const styles = {
     borderRadius: "8px",
     border: "1px solid rgba(72,187,120,0.2)",
   },
-  
+
   modalActions: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "10px",
     marginTop: "10px",
   },
-  
+
   submitButton: {
     backgroundColor: "#667eea",
     color: "white",
@@ -922,7 +987,7 @@ const styles = {
     fontFamily: "Comic Sans MS",
     transition: "all 0.3s ease",
   },
-  
+
   cancelButton: {
     backgroundColor: "#e2e8f0",
     color: "#4a5568",

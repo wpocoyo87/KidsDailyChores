@@ -21,11 +21,11 @@ const ListTaskPage = () => {
       // Check if user is a kid (kidToken exists) or parent (token exists)
       const kidToken = localStorage.getItem("kidToken");
       const parentToken = localStorage.getItem("token");
-      
+
       if (kidToken) {
         // Kid is logged in
         setToken(kidToken);
-        setUserRole('kid');
+        setUserRole("kid");
         const kidData = localStorage.getItem("kidData");
         if (kidData) {
           setSelectedKidStr(kidData);
@@ -33,7 +33,7 @@ const ListTaskPage = () => {
       } else if (parentToken) {
         // Parent is logged in
         setToken(parentToken);
-        setUserRole('parent');
+        setUserRole("parent");
         setSelectedKidStr(localStorage.getItem("selectedKid"));
       }
     }
@@ -45,12 +45,12 @@ const ListTaskPage = () => {
       try {
         let selectedKidStrValue = selectedKidStr;
         let tokenValue = token;
-        
+
         if (typeof window !== "undefined") {
           // Check if user is a kid (kidToken exists) or parent (token exists)
           const kidToken = localStorage.getItem("kidToken");
           const parentToken = localStorage.getItem("token");
-          
+
           if (kidToken) {
             // Kid is logged in
             tokenValue = kidToken;
@@ -62,18 +62,18 @@ const ListTaskPage = () => {
             selectedKidStrValue = localStorage.getItem("selectedKid");
           }
         }
-        
+
         if (!selectedKidStrValue || !tokenValue) {
           console.error("Selected kid or token not found in localStorage");
           return;
         }
-        
+
         const selectedKid = JSON.parse(selectedKidStrValue);
         if (!selectedKid._id) {
           console.error("Selected kid id is missing in localStorage");
           return;
         }
-        
+
         const kidResponse = await axios.get(
           `${apiUrl}/kids/${selectedKid._id}`,
           {
@@ -102,16 +102,13 @@ const ListTaskPage = () => {
     }
     try {
       const formattedDate = date.toISOString().split("T")[0];
-      const taskResponse = await axios.get(
-        `${apiUrl}/kids/${kidId}/tasks`,
-        {
-          params: { date: formattedDate },
-          headers: {
-            Authorization: `Bearer ${tokenValue}`,
-          },
-        }
-      );
-      
+      const taskResponse = await axios.get(`${apiUrl}/kids/${kidId}/tasks`, {
+        params: { date: formattedDate },
+        headers: {
+          Authorization: `Bearer ${tokenValue}`,
+        },
+      });
+
       // Handle the new API response format
       if (taskResponse.data.success) {
         const tasks = taskResponse.data.tasks || [];
@@ -139,30 +136,32 @@ const ListTaskPage = () => {
 
   const handleToggleComplete = async (index) => {
     const updatedTasks = [...tasks];
-    const newCompletedStatus = !(updatedTasks[index].completed || updatedTasks[index].isCompleted);
+    const newCompletedStatus = !(
+      updatedTasks[index].completed || updatedTasks[index].isCompleted
+    );
     updatedTasks[index].completed = newCompletedStatus;
     updatedTasks[index].isCompleted = newCompletedStatus;
     setTasks(updatedTasks);
-    
+
     try {
       let tokenValue = token;
       if (typeof window !== "undefined") {
         // Check if user is a kid (kidToken exists) or parent (token exists)
         const kidToken = localStorage.getItem("kidToken");
         const parentToken = localStorage.getItem("token");
-        
+
         if (kidToken) {
           tokenValue = kidToken;
         } else if (parentToken) {
           tokenValue = parentToken;
         }
       }
-      
+
       if (!kid || !kid._id) {
         console.error("Kid ID is missing or undefined");
         return;
       }
-      
+
       // Update task completion status - backend will automatically calculate points
       const response = await axios.put(
         `${apiUrl}/kids/${kid._id}/tasks/${updatedTasks[index]._id}/completion`,
@@ -173,13 +172,15 @@ const ListTaskPage = () => {
           },
         }
       );
-      
+
       // Update kid points from backend response
       if (response.data && response.data.totalPoints !== undefined) {
-        setKid((prevKid) => ({ ...prevKid, points: response.data.totalPoints }));
+        setKid((prevKid) => ({
+          ...prevKid,
+          points: response.data.totalPoints,
+        }));
         console.log(`Points updated to: ${response.data.totalPoints}`);
       }
-      
     } catch (error) {
       console.error("Error updating task:", error);
       // Revert the task completion status on error
@@ -197,30 +198,27 @@ const ListTaskPage = () => {
         // Check if user is a kid (kidToken exists) or parent (token exists)
         const kidToken = localStorage.getItem("kidToken");
         const parentToken = localStorage.getItem("token");
-        
+
         if (kidToken) {
           tokenValue = kidToken;
         } else if (parentToken) {
           tokenValue = parentToken;
         }
       }
-      
+
       if (!kid || !kid._id) {
         console.error("Kid ID is missing or undefined");
         return;
       }
-      await axios.delete(
-        `${apiUrl}/kids/${kid._id}/tasks/${taskId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${tokenValue}`,
-          },
-        }
-      );
+      await axios.delete(`${apiUrl}/kids/${kid._id}/tasks/${taskId}`, {
+        headers: {
+          Authorization: `Bearer ${tokenValue}`,
+        },
+      });
       const updatedTasks = [...tasks];
       updatedTasks.splice(index, 1);
       setTasks(updatedTasks);
-      
+
       // Reload tasks to get updated points from backend
       await loadTasks(kid._id, selectedDate, tokenValue);
     } catch (error) {
@@ -244,7 +242,7 @@ const ListTaskPage = () => {
         // Check if user is a kid (kidToken exists) or parent (token exists)
         const kidToken = localStorage.getItem("kidToken");
         const parentToken = localStorage.getItem("token");
-        
+
         if (kidToken) {
           tokenValue = kidToken;
         } else if (parentToken) {
@@ -266,7 +264,7 @@ const ListTaskPage = () => {
       );
 
       const responses = await Promise.all(promises);
-      
+
       // Get the final points from the last response (all should have same total)
       const lastResponse = responses[responses.length - 1];
       if (lastResponse.data && lastResponse.data.totalPoints !== undefined) {
@@ -274,10 +272,14 @@ const ListTaskPage = () => {
           ...prevKid,
           points: lastResponse.data.totalPoints,
         }));
-        console.log(`All tasks completed! Total points: ${lastResponse.data.totalPoints}`);
+        console.log(
+          `All tasks completed! Total points: ${lastResponse.data.totalPoints}`
+        );
       }
 
-      setTasks(tasks.map((task) => ({ ...task, completed: true, isCompleted: true })));
+      setTasks(
+        tasks.map((task) => ({ ...task, completed: true, isCompleted: true }))
+      );
       router.push(`/completedTask?kidName=${kid.name}`);
     } catch (error) {
       console.error("Error completing all tasks:", error);
@@ -294,29 +296,34 @@ const ListTaskPage = () => {
 
   if (loading) {
     return (
-      <div style={{
-        ...styles.body,
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        fontFamily: 'Comic Sans MS !important'
-      }}>
-        <div style={{
-          textAlign: 'center',
-          backgroundColor: '#fff',
-          padding: '40px',
-          borderRadius: '20px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{
-            fontSize: '3rem',
-            marginBottom: '20px'
-          }}>⏳</div>
-          <div style={{
-            fontSize: '1.5rem',
-            color: '#2d3436',
-            fontFamily: 'Comic Sans MS !important'
-          }}>Loading your tasks...</div>
+      <div
+        style={{
+          minHeight: "100vh",
+          backgroundImage: "url('/images/background.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          fontFamily: "Comic Sans MS",
+        }}
+      >
+        <div
+          style={{
+            textAlign: "center",
+            background: "rgba(255,255,255,0.85)",
+            padding: "50px 40px",
+            borderRadius: "30px",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+            minWidth: "320px",
+          }}
+        >
+          <div style={{ fontSize: "3rem", marginBottom: "20px" }}>⏳</div>
+          <div
+            style={{ fontSize: "1.5rem", color: "#2d3436", fontWeight: "bold" }}
+          >
+            Loading your tasks...
+          </div>
         </div>
       </div>
     );
@@ -324,117 +331,305 @@ const ListTaskPage = () => {
 
   if (!kid) {
     return (
-      <div style={{
-        ...styles.body,
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        fontFamily: 'Comic Sans MS !important'
-      }}>
-        <div style={{
-          textAlign: 'center',
-          backgroundColor: '#fff',
-          padding: '40px',
-          borderRadius: '20px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{
-            fontSize: '3rem',
-            marginBottom: '20px'
-          }}>😕</div>
-          <div style={{
-            fontSize: '1.5rem',
-            color: '#2d3436',
-            fontFamily: 'Comic Sans MS !important'
-          }}>No kid data found.</div>
+      <div
+        style={{
+          minHeight: "100vh",
+          backgroundImage: "url('/images/background.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          fontFamily: "Comic Sans MS",
+        }}
+      >
+        <div
+          style={{
+            textAlign: "center",
+            background: "rgba(255,255,255,0.85)",
+            padding: "50px 40px",
+            borderRadius: "30px",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+            minWidth: "320px",
+          }}
+        >
+          <div style={{ fontSize: "3rem", marginBottom: "20px" }}>😕</div>
+          <div
+            style={{ fontSize: "1.5rem", color: "#2d3436", fontWeight: "bold" }}
+          >
+            No kid data found.
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={styles.body}>
-      <div style={styles.container}>
-        <h1 style={{fontFamily: 'Comic Sans MS !important', color: '#2d3436'}}>
-          {userRole === 'kid' ? `My Tasks! 📝` : `Tasks for ${kid.name}`}
-        </h1>
-        <img
-          src={kid.selectedAvatar || "/images/default-avatar.png"}
-          alt={`Avatar of ${kid.name}`}
-          style={styles.avatar}
-          onError={(e) => {
-            e.target.src = "/images/default-avatar.png";
-          }}
-        />
-        <div style={styles.starsContainer}>
-          <i className="fas fa-star" style={styles.starIcon}></i>
-          <p style={{...styles.starsText, fontFamily: 'Comic Sans MS !important'}}>
-            {userRole === 'kid' ? `⭐ My Stars: ${kid.points || kid.totalPoints || 0}` : `Star Accumulated Point: ${kid.points || kid.totalPoints || 0}`}
-          </p>
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundImage: "url('/images/background.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        fontFamily: "Comic Sans MS",
+        padding: "20px",
+      }}
+    >
+      <div
+        style={{
+          background: "rgba(255,255,255,0.92)",
+          borderRadius: "30px",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.18)",
+          padding: "40px 30px",
+          maxWidth: "400px",
+          width: "100%",
+          textAlign: "center",
+          position: "relative",
+        }}
+      >
+        {/* Header with avatar and name */}
+        <div style={{ marginBottom: "20px" }}>
+          <img
+            src={kid.selectedAvatar || "/images/default-avatar.png"}
+            alt={`Avatar of ${kid.name}`}
+            style={{
+              width: "90px",
+              height: "90px",
+              borderRadius: "50%",
+              border: "4px solid #FFD700",
+              boxShadow: "0 8px 25px rgba(255,215,0,0.18)",
+              marginBottom: "10px",
+              objectFit: "cover",
+              background: "#fff",
+            }}
+            onError={(e) => {
+              e.target.src = "/images/default-avatar.png";
+            }}
+          />
+          <h2
+            style={{
+              fontWeight: "bold",
+              fontSize: "2rem",
+              color: "#2d3748",
+              margin: 0,
+            }}
+          >
+            {userRole === "kid" ? `My Tasks! 📝` : `Tasks for ${kid.name}`}
+          </h2>
         </div>
-        <div style={styles.datePickerContainer}>
+        {/* Star points badge */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: "18px",
+          }}
+        >
+          <span
+            style={{
+              background: "linear-gradient(90deg, #FFD700 60%, #fffbe6 100%)",
+              color: "#b7791f",
+              fontWeight: "bold",
+              fontSize: "1.1rem",
+              borderRadius: "20px",
+              padding: "8px 18px",
+              boxShadow: "0 2px 8px rgba(255,215,0,0.12)",
+              display: "inline-block",
+            }}
+          >
+            {userRole === "kid"
+              ? `⭐ My Stars: ${kid.points || kid.totalPoints || 0}`
+              : `Star Accumulated Point: ${kid.points || kid.totalPoints || 0}`}
+          </span>
+        </div>
+        {/* Date Picker */}
+        <div style={{ marginBottom: "18px" }}>
           <DatePicker
             selected={selectedDate}
             onChange={handleDateChange}
             dateFormat="yyyy-MM-dd"
-            style={styles.datePicker}
+            style={{
+              padding: "12px",
+              border: "2px dashed #667eea",
+              borderRadius: "12px",
+              background: "#f3f0ff",
+              color: "#2d3748",
+              fontWeight: "bold",
+              fontSize: "1rem",
+              width: "100%",
+              textAlign: "center",
+              fontFamily: "Comic Sans MS",
+            }}
+            calendarClassName="datePicker"
           />
         </div>
+        {/* Task List */}
         {noTasks ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '30px',
-            fontSize: '1.3rem',
-            color: '#7f8c8d',
-            fontFamily: 'Comic Sans MS !important'
-          }}>
-            {userRole === 'kid' ? 
-              '🎉 Awesome! No tasks assigned for today!' : 
-              'No tasks assigned for the selected date.'
-            }
+          <div
+            style={{
+              textAlign: "center",
+              padding: "30px",
+              fontSize: "1.2rem",
+              color: "#7f8c8d",
+              background: "rgba(255,255,255,0.7)",
+              borderRadius: "18px",
+              marginBottom: "18px",
+            }}
+          >
+            {userRole === "kid"
+              ? "🎉 Awesome! No tasks assigned for today!"
+              : "No tasks assigned for the selected date."}
           </div>
         ) : (
-          <ul style={styles.taskList}>
+          <ul
+            style={{
+              listStyleType: "none",
+              padding: 0,
+              margin: 0,
+              marginBottom: "18px",
+            }}
+          >
             {tasks.map((task, index) => (
-              <li key={index} style={styles.taskItem}>
+              <li
+                key={index}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  background: "rgba(102,126,234,0.08)",
+                  borderRadius: "15px",
+                  marginBottom: "12px",
+                  padding: "12px",
+                  boxShadow: "0 2px 8px rgba(102,126,234,0.08)",
+                  border:
+                    task.completed || task.isCompleted
+                      ? "2px solid #48bb78"
+                      : "2px solid #e2e8f0",
+                  transition: "all 0.2s",
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={task.completed || task.isCompleted || false}
                   onChange={() => handleToggleComplete(index)}
+                  style={{ marginRight: "12px", width: "20px", height: "20px" }}
                 />
-                <img src={task.image} alt="Task" style={styles.taskImage} />
-                <span style={{fontFamily: 'Comic Sans MS !important', flex: 1}}>
+                <img
+                  src={task.image}
+                  alt="Task"
+                  style={{
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "10px",
+                    marginRight: "12px",
+                    objectFit: "cover",
+                    border: "2px solid #fff",
+                  }}
+                />
+                <span
+                  style={{
+                    flex: 1,
+                    fontWeight: "bold",
+                    color: "#2d3748",
+                    fontSize: "1.05rem",
+                    textAlign: "left",
+                  }}
+                >
                   {task.task || task.description}
                 </span>
-                {userRole === 'parent' && (
-                  <button onClick={() => handleDeleteTask(index)}>🗑️</button>
+                {userRole === "parent" && (
+                  <button
+                    onClick={() => handleDeleteTask(index)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#e53e3e",
+                      fontSize: "1.3rem",
+                      cursor: "pointer",
+                      marginLeft: "10px",
+                    }}
+                  >
+                    🗑️
+                  </button>
                 )}
               </li>
             ))}
           </ul>
         )}
-        {userRole === 'parent' && (
-          <button onClick={handleAddTask} style={styles.addTaskBtn}>
-            Add Task
+        {/* Action Buttons */}
+        {userRole === "parent" && (
+          <button
+            onClick={handleAddTask}
+            style={{
+              width: "100%",
+              padding: "15px",
+              marginTop: "10px",
+              background: "linear-gradient(90deg, #667eea 60%, #764ba2 100%)",
+              color: "#fff",
+              border: "none",
+              borderRadius: "18px",
+              fontWeight: "bold",
+              fontSize: "1.1rem",
+              boxShadow: "0 8px 25px rgba(102,126,234,0.12)",
+              cursor: "pointer",
+              fontFamily: "Comic Sans MS",
+              transition: "all 0.2s",
+            }}
+          >
+            ➕ Add Task
           </button>
         )}
         <button
           onClick={handleCompleteAllTasks}
           style={{
-            ...styles.completeBtn,
-            opacity: tasks.some((task) => !(task.completed || task.isCompleted)) ? 1 : 0.5,
+            width: "100%",
+            padding: "15px",
+            marginTop: "10px",
+            background: "linear-gradient(90deg, #48bb78 60%, #38a169 100%)",
+            color: "#fff",
+            border: "none",
+            borderRadius: "18px",
+            fontWeight: "bold",
+            fontSize: "1.1rem",
+            boxShadow: "0 8px 25px rgba(72,187,120,0.12)",
             cursor: tasks.some((task) => !(task.completed || task.isCompleted))
               ? "pointer"
               : "not-allowed",
-            fontFamily: 'Comic Sans MS !important'
+            opacity: tasks.some((task) => !(task.completed || task.isCompleted))
+              ? 1
+              : 0.5,
+            fontFamily: "Comic Sans MS",
+            transition: "all 0.2s",
           }}
-          disabled={!tasks.some((task) => !(task.completed || task.isCompleted))}
+          disabled={
+            !tasks.some((task) => !(task.completed || task.isCompleted))
+          }
         >
-          {userRole === 'kid' ? '🎉 Finish All Tasks!' : 'Complete All'}
+          {userRole === "kid" ? "🎉 Finish All Tasks!" : "Complete All"}
         </button>
-        {userRole === 'parent' && (
-          <button onClick={handleKidChange} style={styles.changeKidBtn}>
-            Change Kid
+        {userRole === "parent" && (
+          <button
+            onClick={handleKidChange}
+            style={{
+              width: "100%",
+              padding: "15px",
+              marginTop: "10px",
+              background: "linear-gradient(90deg, #ff9800 60%, #ffd700 100%)",
+              color: "#fff",
+              border: "none",
+              borderRadius: "18px",
+              fontWeight: "bold",
+              fontSize: "1.1rem",
+              boxShadow: "0 8px 25px rgba(255,215,0,0.12)",
+              cursor: "pointer",
+              fontFamily: "Comic Sans MS",
+              transition: "all 0.2s",
+            }}
+          >
+            🔄 Change Kid
           </button>
         )}
       </div>
@@ -528,7 +723,7 @@ const styles = {
     borderRadius: "8px", // Lebih melengkung
     cursor: "pointer",
     fontFamily: "Comic Sans MS !important",
-    fontSize: "16px"
+    fontSize: "16px",
   },
   completeBtn: {
     display: "block",
@@ -541,7 +736,7 @@ const styles = {
     borderRadius: "8px", // Lebih melengkung
     cursor: "pointer",
     fontFamily: "Comic Sans MS !important",
-    fontSize: "16px"
+    fontSize: "16px",
   },
   changeKidBtn: {
     display: "block",
@@ -554,7 +749,7 @@ const styles = {
     borderRadius: "8px", // Lebih melengkung
     cursor: "pointer",
     fontFamily: "Comic Sans MS !important",
-    fontSize: "16px"
+    fontSize: "16px",
   },
 };
 

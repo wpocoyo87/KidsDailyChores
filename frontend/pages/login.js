@@ -133,15 +133,31 @@ const LoginPage = () => {
 
       // Handle specific error cases
       let errorMsg = "Invalid email or password. Please try again.";
-      if (error.response?.status === 401) {
+      if (error.message && error.message.includes("Account is locked")) {
+        errorMsg = error.message;
+      } else if (
+        error.message &&
+        error.message.includes("Too many failed login attempts")
+      ) {
+        errorMsg = error.message;
+      } else if (
+        error.message &&
+        error.message.includes("attempts remaining")
+      ) {
+        errorMsg = error.message;
+      } else if (error.response?.status === 401) {
         errorMsg =
           "Incorrect email or password. Please check your credentials.";
       } else if (error.response?.status === 404) {
         errorMsg = "This email is not registered. Please sign up first.";
+      } else if (error.response?.status === 423) {
+        errorMsg =
+          error.message ||
+          "Account is temporarily locked. Please try again later.";
       } else if (error.response?.status === 500) {
         errorMsg = "Server error. Please try again later.";
-      } else if (error.response?.data?.error) {
-        errorMsg = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
       }
 
       setError(errorMsg);
@@ -613,6 +629,61 @@ const LoginPage = () => {
           }}
         >
           <p>🌟 Fun Fact: You&apos;re about to create amazing memories! 🌟</p>
+        </div>
+
+        {/* Small font links */}
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: "15px",
+            paddingTop: "15px",
+            borderTop: "1px solid #e2e8f0",
+            fontSize: "0.8rem",
+            color: "#718096",
+          }}
+        >
+          <p style={{ margin: "5px 0" }}>
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/register"
+              style={{
+                color: "#667eea",
+                textDecoration: "none",
+                fontWeight: "bold",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) =>
+                (e.target.style.textDecoration = "underline")
+              }
+              onMouseLeave={(e) => (e.target.style.textDecoration = "none")}
+            >
+              Register here
+            </Link>
+          </p>
+          <p style={{ margin: "5px 0" }}>
+            Forgot your password?{" "}
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                alert(
+                  "Password reset feature coming soon! For now, please contact support or register a new account."
+                );
+              }}
+              style={{
+                color: "#667eea",
+                textDecoration: "none",
+                fontWeight: "bold",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) =>
+                (e.target.style.textDecoration = "underline")
+              }
+              onMouseLeave={(e) => (e.target.style.textDecoration = "none")}
+            >
+              Reset password
+            </a>
+          </p>
         </div>
       </div>
     </div>

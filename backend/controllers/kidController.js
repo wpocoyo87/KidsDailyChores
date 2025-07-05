@@ -40,36 +40,38 @@ export const createKid = asyncHandler(async (req, res) => {
 
 export const getKidById = asyncHandler(async (req, res) => {
   const { kidId } = req.params;
-  
+
   try {
     let kid;
-    
-    if (req.userRole === 'kid') {
+
+    if (req.userRole === "kid") {
       // Kids can only access their own data
       if (!req.kid) {
         return res.status(401).json({ error: "Kid authentication required" });
       }
-      
+
       kid = await Kid.findById(kidId);
       if (!kid || kid._id.toString() !== req.kid._id.toString()) {
         return res.status(404).json({ error: "Kid not found" });
       }
-    } else if (req.userRole === 'parent') {
+    } else if (req.userRole === "parent") {
       // Parents can access their kids' data
       if (!req.user) {
-        return res.status(401).json({ error: "Parent authentication required" });
+        return res
+          .status(401)
+          .json({ error: "Parent authentication required" });
       }
-      
+
       const { _id: userId } = req.user;
       kid = await getKidByIdService(userId, kidId);
     } else {
       return res.status(401).json({ error: "Authentication required" });
     }
-    
+
     // Fix any missing required fields in tasks before returning
     let hasChanges = false;
     if (kid.tasks && kid.tasks.length > 0) {
-      kid.tasks.forEach(task => {
+      kid.tasks.forEach((task) => {
         if (!task.task && task.description) {
           task.task = task.description;
           hasChanges = true;
@@ -83,7 +85,7 @@ export const getKidById = asyncHandler(async (req, res) => {
           hasChanges = true;
         }
         if (!task.date) {
-          task.date = new Date().toISOString().split('T')[0];
+          task.date = new Date().toISOString().split("T")[0];
           hasChanges = true;
         }
       });
@@ -98,7 +100,7 @@ export const getKidById = asyncHandler(async (req, res) => {
         }
       }
     }
-    
+
     res.status(200).json({
       _id: kid._id,
       name: kid.name,
@@ -106,7 +108,7 @@ export const getKidById = asyncHandler(async (req, res) => {
       birthDate: kid.birthDate,
       selectedAvatar: kid.selectedAvatar,
       totalPoints: kid.totalPoints || 0,
-      tasks: kid.tasks
+      tasks: kid.tasks,
     });
   } catch (error) {
     console.error("Error fetching kid:", error);
@@ -190,32 +192,32 @@ export const getTasks = asyncHandler(async (req, res) => {
 
   try {
     // Check authentication based on role
-    if (req.userRole === 'kid') {
+    if (req.userRole === "kid") {
       if (!req.kid) {
-        return res.status(401).json({ 
-          success: false, 
-          error: "Kid authentication required" 
+        return res.status(401).json({
+          success: false,
+          error: "Kid authentication required",
         });
       }
-      
+
       // Kids can only access their own tasks
       if (kidId !== req.kid._id.toString()) {
-        return res.status(403).json({ 
-          success: false, 
-          error: "Access denied" 
+        return res.status(403).json({
+          success: false,
+          error: "Access denied",
         });
       }
-    } else if (req.userRole === 'parent') {
+    } else if (req.userRole === "parent") {
       if (!req.user) {
-        return res.status(401).json({ 
-          success: false, 
-          error: "Parent authentication required" 
+        return res.status(401).json({
+          success: false,
+          error: "Parent authentication required",
         });
       }
     } else {
-      return res.status(401).json({ 
-        success: false, 
-        error: "Authentication required" 
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required",
       });
     }
 
@@ -223,15 +225,15 @@ export const getTasks = asyncHandler(async (req, res) => {
     if (!date) {
       const kid = await Kid.findById(kidId);
       if (!kid) {
-        return res.status(404).json({ 
-          success: false, 
-          error: "Kid not found" 
+        return res.status(404).json({
+          success: false,
+          error: "Kid not found",
         });
       }
 
       // Fix any missing required fields in tasks before returning
       let hasChanges = false;
-      kid.tasks.forEach(task => {
+      kid.tasks.forEach((task) => {
         if (!task.task && task.description) {
           task.task = task.description;
           hasChanges = true;
@@ -245,7 +247,7 @@ export const getTasks = asyncHandler(async (req, res) => {
           hasChanges = true;
         }
         if (!task.date) {
-          task.date = new Date().toISOString().split('T')[0];
+          task.date = new Date().toISOString().split("T")[0];
           hasChanges = true;
         }
       });
@@ -267,8 +269,8 @@ export const getTasks = asyncHandler(async (req, res) => {
         kid: {
           _id: kid._id,
           name: kid.name,
-          totalPoints: kid.totalPoints || 0
-        }
+          totalPoints: kid.totalPoints || 0,
+        },
       });
     }
 
@@ -279,21 +281,21 @@ export const getTasks = asyncHandler(async (req, res) => {
     if (tasks.length > 0) {
       res.status(200).json({
         success: true,
-        tasks: tasks
+        tasks: tasks,
       });
     } else {
       console.log("Tasks not found");
-      res.status(404).json({ 
-        success: false, 
-        error: "Tasks not found" 
+      res.status(404).json({
+        success: false,
+        error: "Tasks not found",
       });
     }
   } catch (error) {
     console.error("Error fetching tasks:", error);
     if (!res.headersSent) {
-      res.status(500).json({ 
-        success: false, 
-        error: "Internal server error" 
+      res.status(500).json({
+        success: false,
+        error: "Internal server error",
       });
     }
   }
@@ -359,36 +361,36 @@ export const markTaskComplete = asyncHandler(async (req, res) => {
 
   try {
     let kidId;
-    
+
     // Check authentication based on role
-    if (req.userRole === 'kid') {
+    if (req.userRole === "kid") {
       if (!req.kid) {
         console.log("Kid authentication failed - no req.kid");
-        return res.status(401).json({ 
-          success: false, 
-          message: "Kid authentication required" 
+        return res.status(401).json({
+          success: false,
+          message: "Kid authentication required",
         });
       }
       kidId = req.kid._id;
       console.log(`Kid authenticated: ${req.kid.name} (${kidId})`);
-    } else if (req.userRole === 'parent') {
+    } else if (req.userRole === "parent") {
       if (!req.user) {
         console.log("Parent authentication failed - no req.user");
-        return res.status(401).json({ 
-          success: false, 
-          message: "Parent authentication required" 
+        return res.status(401).json({
+          success: false,
+          message: "Parent authentication required",
         });
       }
       // For parents, we would need kidId from request params, but this endpoint is mainly for kids
-      return res.status(403).json({ 
-        success: false, 
-        message: "This endpoint is for kids only" 
+      return res.status(403).json({
+        success: false,
+        message: "This endpoint is for kids only",
       });
     } else {
       console.log(`Invalid user role: ${req.userRole}`);
-      return res.status(401).json({ 
-        success: false, 
-        message: "Authentication required" 
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
       });
     }
 
@@ -396,12 +398,12 @@ export const markTaskComplete = asyncHandler(async (req, res) => {
 
     // Find the kid and task
     const kid = await Kid.findById(kidId);
-    
+
     if (!kid) {
       console.log(`Kid not found with ID: ${kidId}`);
-      return res.status(404).json({ 
-        success: false, 
-        message: "Kid not found" 
+      return res.status(404).json({
+        success: false,
+        message: "Kid not found",
       });
     }
 
@@ -409,13 +411,13 @@ export const markTaskComplete = asyncHandler(async (req, res) => {
 
     // Fix any tasks that are missing required fields before proceeding
     let needsSave = false;
-    kid.tasks.forEach(task => {
-      if (!task.task || task.task.trim() === '') {
-        task.task = task.description || 'Untitled Task';
+    kid.tasks.forEach((task) => {
+      if (!task.task || task.task.trim() === "") {
+        task.task = task.description || "Untitled Task";
         needsSave = true;
       }
-      if (!task.description || task.description.trim() === '') {
-        task.description = task.task || 'No description';
+      if (!task.description || task.description.trim() === "") {
+        task.description = task.task || "No description";
         needsSave = true;
       }
       if (!task.date) {
@@ -426,7 +428,7 @@ export const markTaskComplete = asyncHandler(async (req, res) => {
 
     // Save fixes if needed
     if (needsSave) {
-      console.log('Fixing task data validation issues...');
+      console.log("Fixing task data validation issues...");
       await kid.save({ validateBeforeSave: false }); // Save without validation first
       // Reload the kid to get clean data
       const updatedKid = await Kid.findById(kidId);
@@ -436,19 +438,24 @@ export const markTaskComplete = asyncHandler(async (req, res) => {
     const task = kid.tasks.id(taskId);
     if (!task) {
       console.log(`Task not found with ID: ${taskId}`);
-      console.log(`Available task IDs:`, kid.tasks.map(t => t._id.toString()));
-      return res.status(404).json({ 
-        success: false, 
-        message: "Task not found" 
+      console.log(
+        `Available task IDs:`,
+        kid.tasks.map((t) => t._id.toString())
+      );
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
       });
     }
 
-    console.log(`Found task: ${task.task}, current status - completed: ${task.completed}, isCompleted: ${task.isCompleted}`);
+    console.log(
+      `Found task: ${task.task}, current status - completed: ${task.completed}, isCompleted: ${task.isCompleted}`
+    );
 
     if (task.isCompleted) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Task already completed" 
+      return res.status(400).json({
+        success: false,
+        message: "Task already completed",
       });
     }
 
@@ -470,10 +477,12 @@ export const markTaskComplete = asyncHandler(async (req, res) => {
     const oldPoints = kid.totalPoints || 0;
     kid.totalPoints = oldPoints + taskPoints;
 
-    console.log(`Updating points: ${oldPoints} + ${taskPoints} = ${kid.totalPoints}`);
+    console.log(
+      `Updating points: ${oldPoints} + ${taskPoints} = ${kid.totalPoints}`
+    );
 
     // Before saving, ensure all tasks have required fields
-    kid.tasks.forEach(t => {
+    kid.tasks.forEach((t) => {
       if (!t.task && t.description) {
         t.task = t.description;
       }
@@ -484,7 +493,7 @@ export const markTaskComplete = asyncHandler(async (req, res) => {
         t.image = "/images/task1.png";
       }
       if (!t.date) {
-        t.date = new Date().toISOString().split('T')[0];
+        t.date = new Date().toISOString().split("T")[0];
       }
     });
 
@@ -499,16 +508,16 @@ export const markTaskComplete = asyncHandler(async (req, res) => {
       kid: {
         _id: kid._id,
         name: kid.name,
-        totalPoints: kid.totalPoints
-      }
+        totalPoints: kid.totalPoints,
+      },
     });
   } catch (error) {
     console.error("Error marking task complete:", error);
     console.error("Error stack:", error.stack);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: "Error completing task",
-      error: error.message 
+      error: error.message,
     });
   }
 });
@@ -577,7 +586,9 @@ export const getKidsByParentEmail = asyncHandler(async (req, res) => {
 });
 
 export const setKidPin = asyncHandler(async (req, res) => {
-  const { kidId, pin } = req.body;
+  // Support both /:kidId/pin (params) and /kids/set-pin (body) routes
+  const kidId = req.params.kidId || req.body.kidId;
+  const { pin } = req.body;
   console.log(`Setting PIN for kid: ${kidId}`);
 
   try {
@@ -595,7 +606,6 @@ export const setKidPin = asyncHandler(async (req, res) => {
       });
     }
 
-    const Kid = (await import("../models/KidModel.js")).default;
     const kid = await Kid.findById(kidId);
 
     if (!kid) {
@@ -605,8 +615,8 @@ export const setKidPin = asyncHandler(async (req, res) => {
       });
     }
 
-    // Verify that the kid belongs to the authenticated parent
-    if (kid.userId.toString() !== req.user._id.toString()) {
+    // FIX: Use 'parent' not 'userId'
+    if (kid.parent.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         error: "Not authorized to set PIN for this kid",
@@ -614,7 +624,8 @@ export const setKidPin = asyncHandler(async (req, res) => {
     }
 
     await kid.setKidPin(pin);
-    console.log(`PIN set successfully for kid: ${kid.name}`);
+    await kid.save(); // <-- Make sure to save after setting PIN
+    console.log("PIN hash to be saved:", kid.kidPin);
 
     res.status(200).json({
       success: true,
@@ -768,14 +779,14 @@ export const removeKidPin = asyncHandler(async (req, res) => {
 export const fixAllKidsTaskFields = asyncHandler(async (req, res) => {
   try {
     console.log("Starting to fix all kids task fields...");
-    
+
     const kids = await Kid.find({});
     let kidsFixed = 0;
-    
+
     for (const kid of kids) {
       let hasChanges = false;
-      
-      kid.tasks.forEach(task => {
+
+      kid.tasks.forEach((task) => {
         if (!task.task && task.description) {
           task.task = task.description;
           hasChanges = true;
@@ -789,11 +800,11 @@ export const fixAllKidsTaskFields = asyncHandler(async (req, res) => {
           hasChanges = true;
         }
         if (!task.date) {
-          task.date = new Date().toISOString().split('T')[0];
+          task.date = new Date().toISOString().split("T")[0];
           hasChanges = true;
         }
       });
-      
+
       if (hasChanges) {
         try {
           await kid.save();
@@ -804,19 +815,25 @@ export const fixAllKidsTaskFields = asyncHandler(async (req, res) => {
         }
       }
     }
-    
+
     console.log(`Finished fixing ${kidsFixed} kids`);
-    
+
     res.status(200).json({
       success: true,
       message: `Fixed task fields for ${kidsFixed} kids`,
-      kidsFixed
+      kidsFixed,
     });
   } catch (error) {
     console.error("Error in fixAllKidsTaskFields:", error);
     res.status(500).json({
       success: false,
-      error: "Error fixing kids task fields"
+      error: "Error fixing kids task fields",
     });
   }
+});
+
+export const getKidsForParent = asyncHandler(async (req, res) => {
+  const parentId = req.user._id;
+  const kids = await Kid.find({ parent: parentId });
+  res.status(200).json(kids);
 });

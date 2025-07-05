@@ -1,5 +1,7 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import api from "@/utils/axiosInstance";
 
 const RegisterPage = () => {
   const router = useRouter();
@@ -19,8 +21,6 @@ const RegisterPage = () => {
 
   // Assume we have 8 avatars
   const numAvatars = 8;
-
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   // Fun characters for kids
   const characters = ["🌟", "🎨", "👶", "🧒", "👦", "👧", "🎯", "🏆"];
@@ -43,7 +43,8 @@ const RegisterPage = () => {
   // Welcome message rotation
   useEffect(() => {
     const interval = setInterval(() => {
-      const randomMessage = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+      const randomMessage =
+        welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
       setWelcomeMessage(randomMessage);
     }, 4000);
     return () => clearInterval(interval);
@@ -71,7 +72,8 @@ const RegisterPage = () => {
       }
 
       // Create simple beep sound
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -82,7 +84,10 @@ const RegisterPage = () => {
       oscillator.type = "sine";
 
       gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.3
+      );
 
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.3);
@@ -145,25 +150,18 @@ const RegisterPage = () => {
     }
 
     try {
-      const response = await fetch(`${apiUrl}/users/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, email, password, kids }),
+      const response = await api.post("/users/register", {
+        username,
+        email,
+        password,
+        kids,
       });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text);
-      }
-
-      const { token, userId } = await response.json();
+      const { token, userId } = response.data;
       console.log("Registration successful, token:", token);
       playSound("success");
 
       // Save token and userId to localStorage
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.setItem("token", token);
         localStorage.setItem("userId", userId);
         localStorage.setItem("email", email);
@@ -177,19 +175,21 @@ const RegisterPage = () => {
       }, 2000); // Adjust this path as per your routes
     } catch (error) {
       console.error("Registration error:", error);
-      
+
       // Handle specific error cases
       let errorMsg = "Registration failed. Please try again.";
       if (error.response?.status === 400) {
-        errorMsg = "This email is already registered. Please use a different email or try logging in.";
+        errorMsg =
+          "This email is already registered. Please use a different email or try logging in.";
       } else if (error.response?.status === 422) {
-        errorMsg = "Please check your information. Make sure all fields are filled correctly.";
+        errorMsg =
+          "Please check your information. Make sure all fields are filled correctly.";
       } else if (error.response?.status === 500) {
         errorMsg = "Server error. Please try again later.";
       } else if (error.response?.data?.error) {
         errorMsg = error.response.data.error;
       }
-      
+
       setError(errorMsg);
     }
   };
@@ -197,7 +197,8 @@ const RegisterPage = () => {
   const styles = {
     body: {
       fontFamily: "Comic Sans MS",
-      backgroundColor: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)",
+      backgroundColor:
+        "linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)",
       color: "#2c3e50",
       minHeight: "100vh",
       display: "flex",
@@ -215,7 +216,8 @@ const RegisterPage = () => {
       left: 0,
       width: "100%",
       height: "100%",
-      background: "linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #dda0dd)",
+      background:
+        "linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #dda0dd)",
       backgroundSize: "600% 600%",
       animation: "gradientShift 15s ease infinite",
       zIndex: -1,
@@ -454,23 +456,52 @@ const RegisterPage = () => {
   return (
     <>
       <style jsx global>{`
-        body, input, button, select, textarea, h1, h2, h3, h4, h5, h6, p, label, div, span {
+        body,
+        input,
+        button,
+        select,
+        textarea,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p,
+        label,
+        div,
+        span {
           font-family: "Comic Sans MS";
         }
-        
+
         @keyframes gradientShift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
         }
-        
+
         @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          25% { transform: translateY(-20px) rotate(5deg); }
-          50% { transform: translateY(-10px) rotate(-5deg); }
-          75% { transform: translateY(-15px) rotate(3deg); }
+          0%,
+          100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          25% {
+            transform: translateY(-20px) rotate(5deg);
+          }
+          50% {
+            transform: translateY(-10px) rotate(-5deg);
+          }
+          75% {
+            transform: translateY(-15px) rotate(3deg);
+          }
         }
-        
+
         @keyframes slideInUp {
           from {
             opacity: 0;
@@ -481,24 +512,49 @@ const RegisterPage = () => {
             transform: translateY(0);
           }
         }
-        
+
         @keyframes titleBounce {
-          0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-          40% { transform: translateY(-10px); }
-          60% { transform: translateY(-5px); }
+          0%,
+          20%,
+          50%,
+          80%,
+          100% {
+            transform: translateY(0);
+          }
+          40% {
+            transform: translateY(-10px);
+          }
+          60% {
+            transform: translateY(-5px);
+          }
         }
-        
+
         @keyframes fadeInOut {
-          0%, 100% { opacity: 0.8; }
-          50% { opacity: 1; }
+          0%,
+          100% {
+            opacity: 0.8;
+          }
+          50% {
+            opacity: 1;
+          }
         }
-        
+
         @keyframes bounce {
-          0%, 20%, 50%, 80%, 100% { transform: translateY(0) scale(1); }
-          40% { transform: translateY(-10px) scale(1.1); }
-          60% { transform: translateY(-5px) scale(1.05); }
+          0%,
+          20%,
+          50%,
+          80%,
+          100% {
+            transform: translateY(0) scale(1);
+          }
+          40% {
+            transform: translateY(-10px) scale(1.1);
+          }
+          60% {
+            transform: translateY(-5px) scale(1.05);
+          }
         }
-        
+
         @keyframes kidCardSlide {
           from {
             opacity: 0;
@@ -509,23 +565,38 @@ const RegisterPage = () => {
             transform: translateX(0) scale(1);
           }
         }
-        
+
         @keyframes avatarFloat {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-5px); }
+          0%,
+          100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-5px);
+          }
         }
-        
+
         @keyframes selectedPulse {
-          from { box-shadow: 0 0 20px rgba(255, 107, 107, 0.6); }
-          to { box-shadow: 0 0 30px rgba(255, 107, 107, 1); }
+          from {
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.6);
+          }
+          to {
+            box-shadow: 0 0 30px rgba(255, 107, 107, 1);
+          }
         }
-        
+
         @keyframes buttonPulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-          100% { transform: scale(1); }
+          0% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.05);
+          }
+          100% {
+            transform: scale(1);
+          }
         }
-        
+
         @keyframes successSlide {
           from {
             opacity: 0;
@@ -536,33 +607,44 @@ const RegisterPage = () => {
             transform: translateY(0);
           }
         }
-        
+
         @keyframes errorShake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-5px); }
-          75% { transform: translateX(5px); }
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          25% {
+            transform: translateX(-5px);
+          }
+          75% {
+            transform: translateX(5px);
+          }
         }
-        
+
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
-        
+
         .input-focus {
           border-color: #4ecdc4 !important;
           background-color: #fff !important;
           transform: translateY(-2px) !important;
           box-shadow: 0 5px 20px rgba(78, 205, 196, 0.3) !important;
         }
-        
+
         .button-hover {
           transform: translateY(-3px) !important;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
         }
-        
+
         .avatar-hover {
           transform: scale(1.1) rotate(5deg) !important;
-          box-shadow: 0 8px 25px rgba(0,0,0,0.2) !important;
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
         }
 
         @media (max-width: 600px) {
@@ -580,8 +662,14 @@ const RegisterPage = () => {
         }
 
         @keyframes slideDownFade {
-          from { opacity: 0; transform: translateY(-20px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         .input-flex-bar .input-icon-left {
@@ -610,11 +698,11 @@ const RegisterPage = () => {
           }
         }
       `}</style>
-      
+
       <div style={styles.body}>
         {/* Animated Background */}
         <div style={styles.animatedBg}></div>
-        
+
         {/* Floating Stars */}
         <div style={styles.floatingStars}>
           {[...Array(20)].map((_, i) => (
@@ -639,11 +727,9 @@ const RegisterPage = () => {
               <div style={styles.spinner}></div>
             </div>
           )}
-          
-          <h1 style={styles.title}>
-            Create Family Account! 👨‍👩‍👧‍👦
-          </h1>
-          
+
+          <h1 style={styles.title}>Create Family Account! 👨‍👩‍👧‍👦</h1>
+
           <div style={styles.welcomeMessageContainer}>
             <div style={styles.welcomeMessage}>
               {welcomeMessage || "Let's create your family account! 👨‍👩‍👧‍👦"}
@@ -657,23 +743,26 @@ const RegisterPage = () => {
 
           <form onSubmit={handleRegister}>
             {/* Parent's Name input with icon */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              ...styles.formInput,
-              padding: 0,
-              paddingLeft: '20px',
-              paddingRight: '20px',
-              marginBottom: '15px',
-              minHeight: '56px',
-              paddingTop: '8px',
-              paddingBottom: '8px',
-              overflow: 'hidden',
-              width: '90%',
-              maxWidth: '500px',
-              marginLeft: 'auto',
-              marginRight: 'auto',
-            }} className="input-flex-bar">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                ...styles.formInput,
+                padding: 0,
+                paddingLeft: "20px",
+                paddingRight: "20px",
+                marginBottom: "15px",
+                minHeight: "56px",
+                paddingTop: "8px",
+                paddingBottom: "8px",
+                overflow: "hidden",
+                width: "90%",
+                maxWidth: "500px",
+                marginLeft: "auto",
+                marginRight: "auto",
+              }}
+              className="input-flex-bar"
+            >
               <span className="input-icon-left">👤</span>
               <input
                 type="text"
@@ -682,38 +771,41 @@ const RegisterPage = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 style={{
                   flex: 1,
-                  border: 'none',
-                  background: 'transparent',
+                  border: "none",
+                  background: "transparent",
                   fontSize: styles.formInput.fontSize,
-                  outline: 'none',
+                  outline: "none",
                   fontFamily: styles.formInput.fontFamily,
-                  height: '100%',
+                  height: "100%",
                   padding: 0,
                   margin: 0,
                 }}
-                onFocus={(e) => e.target.classList.add('input-focus')}
-                onBlur={(e) => e.target.classList.remove('input-focus')}
+                onFocus={(e) => e.target.classList.add("input-focus")}
+                onBlur={(e) => e.target.classList.remove("input-focus")}
                 required
               />
             </div>
             {/* Email Address input with icon */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              ...styles.formInput,
-              padding: 0,
-              paddingLeft: '20px',
-              paddingRight: '20px',
-              marginBottom: '15px',
-              minHeight: '56px',
-              paddingTop: '8px',
-              paddingBottom: '8px',
-              overflow: 'hidden',
-              width: '90%',
-              maxWidth: '500px',
-              marginLeft: 'auto',
-              marginRight: 'auto',
-            }} className="input-flex-bar">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                ...styles.formInput,
+                padding: 0,
+                paddingLeft: "20px",
+                paddingRight: "20px",
+                marginBottom: "15px",
+                minHeight: "56px",
+                paddingTop: "8px",
+                paddingBottom: "8px",
+                overflow: "hidden",
+                width: "90%",
+                maxWidth: "500px",
+                marginLeft: "auto",
+                marginRight: "auto",
+              }}
+              className="input-flex-bar"
+            >
               <span className="input-icon-left">📧</span>
               <input
                 type="email"
@@ -722,57 +814,60 @@ const RegisterPage = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 style={{
                   flex: 1,
-                  border: 'none',
-                  background: 'transparent',
+                  border: "none",
+                  background: "transparent",
                   fontSize: styles.formInput.fontSize,
-                  outline: 'none',
+                  outline: "none",
                   fontFamily: styles.formInput.fontFamily,
-                  height: '100%',
+                  height: "100%",
                   padding: 0,
                   margin: 0,
                 }}
-                onFocus={(e) => e.target.classList.add('input-focus')}
-                onBlur={(e) => e.target.classList.remove('input-focus')}
+                onFocus={(e) => e.target.classList.add("input-focus")}
+                onBlur={(e) => e.target.classList.remove("input-focus")}
                 required
               />
             </div>
             {/* Password input with lock and eye icon using flex */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              ...styles.formInput,
-              padding: 0,
-              paddingLeft: '20px',
-              paddingRight: '20px',
-              marginBottom: '15px',
-              minHeight: '56px',
-              paddingTop: '8px',
-              paddingBottom: '8px',
-              overflow: 'hidden',
-              width: '90%',
-              maxWidth: '500px',
-              marginLeft: 'auto',
-              marginRight: 'auto',
-            }} className="input-flex-bar">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                ...styles.formInput,
+                padding: 0,
+                paddingLeft: "20px",
+                paddingRight: "20px",
+                marginBottom: "15px",
+                minHeight: "56px",
+                paddingTop: "8px",
+                paddingBottom: "8px",
+                overflow: "hidden",
+                width: "90%",
+                maxWidth: "500px",
+                marginLeft: "auto",
+                marginRight: "auto",
+              }}
+              className="input-flex-bar"
+            >
               <span className="input-icon-left">🔒</span>
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 style={{
                   flex: 1,
-                  border: 'none',
-                  background: 'transparent',
+                  border: "none",
+                  background: "transparent",
                   fontSize: styles.formInput.fontSize,
-                  outline: 'none',
+                  outline: "none",
                   fontFamily: styles.formInput.fontFamily,
-                  height: '100%',
+                  height: "100%",
                   padding: 0,
                   margin: 0,
                 }}
-                onFocus={(e) => e.target.classList.add('input-focus')}
-                onBlur={(e) => e.target.classList.remove('input-focus')}
+                onFocus={(e) => e.target.classList.add("input-focus")}
+                onBlur={(e) => e.target.classList.remove("input-focus")}
                 required
               />
               <button
@@ -780,34 +875,43 @@ const RegisterPage = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 className="input-icon-eye"
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
                   fontSize: 24,
                   marginLeft: 10,
-                  display: 'flex',
-                  alignItems: 'center',
-                  height: '100%',
+                  display: "flex",
+                  alignItems: "center",
+                  height: "100%",
                   padding: 0,
                 }}
                 tabIndex={-1}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? '🙈' : '👁️'}
+                {showPassword ? "🙈" : "👁️"}
               </button>
             </div>
 
             {kids.map((kid, index) => (
               <div key={kid.id} style={styles.kidContainer}>
                 <div style={styles.kidHeader}>
-                  👶 Kid #{index + 1} {kid.gender === 'boy' ? '👦' : kid.gender === 'girl' ? '👧' : '🧒'}
+                  👶 Kid #{index + 1}{" "}
+                  {kid.gender === "boy"
+                    ? "👦"
+                    : kid.gender === "girl"
+                    ? "👧"
+                    : "🧒"}
                   {kids.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleRemoveKid(kid.id)}
                       style={styles.removeKidBtn}
-                      onMouseEnter={(e) => e.target.classList.add('button-hover')}
-                      onMouseLeave={(e) => e.target.classList.remove('button-hover')}
+                      onMouseEnter={(e) =>
+                        e.target.classList.add("button-hover")
+                      }
+                      onMouseLeave={(e) =>
+                        e.target.classList.remove("button-hover")
+                      }
                     >
                       🗑️ Remove
                     </button>
@@ -817,8 +921,12 @@ const RegisterPage = () => {
                 {kid.selectedAvatar && !avatarPickerOpen[kid.id] && (
                   <div
                     style={{
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 10,
-                      animation: 'slideDownFade 0.5s', cursor: 'pointer',
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      marginBottom: 10,
+                      animation: "slideDownFade 0.5s",
+                      cursor: "pointer",
                     }}
                     onClick={() => handleOpenAvatarPicker(kid.id)}
                     title="Click to change avatar"
@@ -826,37 +934,52 @@ const RegisterPage = () => {
                     <img
                       src={kid.selectedAvatar}
                       alt="Selected Avatar"
-                      style={{ ...styles.avatarOption, marginBottom: 0, border: '3px solid #4ecdc4', boxShadow: '0 0 10px #4ecdc4' }}
+                      style={{
+                        ...styles.avatarOption,
+                        marginBottom: 0,
+                        border: "3px solid #4ecdc4",
+                        boxShadow: "0 0 10px #4ecdc4",
+                      }}
                     />
-                    <span style={{ fontSize: 12, color: '#4ecdc4', marginTop: 2 }}>(Change Avatar)</span>
+                    <span
+                      style={{ fontSize: 12, color: "#4ecdc4", marginTop: 2 }}
+                    >
+                      (Change Avatar)
+                    </span>
                   </div>
                 )}
                 <input
                   type="text"
                   placeholder="📝 Kid's Name"
                   value={kid.name}
-                  onChange={(e) => handleKidDetailsChange(kid.id, "name", e.target.value)}
+                  onChange={(e) =>
+                    handleKidDetailsChange(kid.id, "name", e.target.value)
+                  }
                   style={styles.kidInput}
-                  onFocus={(e) => e.target.classList.add('input-focus')}
-                  onBlur={(e) => e.target.classList.remove('input-focus')}
+                  onFocus={(e) => e.target.classList.add("input-focus")}
+                  onBlur={(e) => e.target.classList.remove("input-focus")}
                   required
                 />
                 <input
                   type="date"
                   placeholder="🎂 Birth Date"
                   value={kid.birthDate}
-                  onChange={(e) => handleKidDetailsChange(kid.id, "birthDate", e.target.value)}
+                  onChange={(e) =>
+                    handleKidDetailsChange(kid.id, "birthDate", e.target.value)
+                  }
                   style={styles.kidInput}
-                  onFocus={(e) => e.target.classList.add('input-focus')}
-                  onBlur={(e) => e.target.classList.remove('input-focus')}
+                  onFocus={(e) => e.target.classList.add("input-focus")}
+                  onBlur={(e) => e.target.classList.remove("input-focus")}
                   required
                 />
                 <select
                   value={kid.gender}
-                  onChange={(e) => handleKidDetailsChange(kid.id, "gender", e.target.value)}
+                  onChange={(e) =>
+                    handleKidDetailsChange(kid.id, "gender", e.target.value)
+                  }
                   style={styles.kidInput}
-                  onFocus={(e) => e.target.classList.add('input-focus')}
-                  onBlur={(e) => e.target.classList.remove('input-focus')}
+                  onFocus={(e) => e.target.classList.add("input-focus")}
+                  onBlur={(e) => e.target.classList.remove("input-focus")}
                   required
                 >
                   <option value="">👶 Select Gender</option>
@@ -866,7 +989,15 @@ const RegisterPage = () => {
                 {/* Avatar picker only if open or not yet chosen */}
                 {(!kid.selectedAvatar || avatarPickerOpen[kid.id]) && (
                   <div style={styles.avatarContainer}>
-                    <p style={{ width: '100%', textAlign: 'center', margin: '0 0 10px 0', color: '#2d3436', fontWeight: 'bold' }}>
+                    <p
+                      style={{
+                        width: "100%",
+                        textAlign: "center",
+                        margin: "0 0 10px 0",
+                        color: "#2d3436",
+                        fontWeight: "bold",
+                      }}
+                    >
                       🎨 Choose Avatar:
                     </p>
                     {[...Array(numAvatars)].map((_, avatarIndex) => {
@@ -882,9 +1013,16 @@ const RegisterPage = () => {
                             ...styles.avatarOption,
                             ...(isSelected ? styles.selectedAvatar : {}),
                           }}
-                          onClick={() => handleSelectAvatar(kid.id, avatarNumber)}
-                          onMouseEnter={(e) => !isSelected && e.target.classList.add('avatar-hover')}
-                          onMouseLeave={(e) => e.target.classList.remove('avatar-hover')}
+                          onClick={() =>
+                            handleSelectAvatar(kid.id, avatarNumber)
+                          }
+                          onMouseEnter={(e) =>
+                            !isSelected &&
+                            e.target.classList.add("avatar-hover")
+                          }
+                          onMouseLeave={(e) =>
+                            e.target.classList.remove("avatar-hover")
+                          }
                         />
                       );
                     })}
@@ -896,8 +1034,10 @@ const RegisterPage = () => {
                     type="button"
                     onClick={handleAddKid}
                     style={styles.addKidBtn}
-                    onMouseEnter={(e) => e.target.classList.add('button-hover')}
-                    onMouseLeave={(e) => e.target.classList.remove('button-hover')}
+                    onMouseEnter={(e) => e.target.classList.add("button-hover")}
+                    onMouseLeave={(e) =>
+                      e.target.classList.remove("button-hover")
+                    }
                   >
                     ➕ Add Another Kid
                   </button>
@@ -907,35 +1047,36 @@ const RegisterPage = () => {
 
             {registrationSuccess && (
               <div style={styles.successMessage}>
-                🎉 Registration successful! Welcome to the family! Redirecting to login...
+                🎉 Registration successful! Welcome to the family! Redirecting
+                to login...
               </div>
             )}
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               style={styles.button}
-              onMouseEnter={(e) => e.target.classList.add('button-hover')}
-              onMouseLeave={(e) => e.target.classList.remove('button-hover')}
+              onMouseEnter={(e) => e.target.classList.add("button-hover")}
+              onMouseLeave={(e) => e.target.classList.remove("button-hover")}
               disabled={isLoading}
             >
               🚀 Create Family Account
             </button>
           </form>
-          
-          <div style={{ marginTop: '20px', textAlign: 'center' }}>
-            <p style={{ color: '#7f8c8d', fontSize: '16px' }}>
-              Already have an account?{' '}
+
+          <div style={{ marginTop: "20px", textAlign: "center" }}>
+            <p style={{ color: "#7f8c8d", fontSize: "16px" }}>
+              Already have an account?{" "}
               <button
                 type="button"
-                onClick={() => router.push('/login')}
+                onClick={() => router.push("/login")}
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#4ecdc4',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  textDecoration: 'underline'
+                  background: "none",
+                  border: "none",
+                  color: "#4ecdc4",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  textDecoration: "underline",
                 }}
               >
                 🏠 Login Here

@@ -1,97 +1,103 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/router"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import Link from "next/link";
 
 const LoginPage = () => {
-  const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [currentCharacter, setCurrentCharacter] = useState(0)
-  const [welcomeMessage, setWelcomeMessage] = useState("")
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [currentCharacter, setCurrentCharacter] = useState(0);
+  const [welcomeMessage, setWelcomeMessage] = useState("");
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   // Fun characters for kids
-  const characters = ["🦸‍♂️", "🦸‍♀️", "🐻", "🦄", "🐸", "🦊", "🐱", "🐰"]
+  const characters = ["🦸‍♂️", "🦸‍♀️", "🐻", "🦄", "🐸", "🦊", "🐱", "🐰"];
   const welcomeMessages = [
     "Welcome back, Super Hero! 🦸‍♂️",
     "Ready for more adventures? 🌟",
     "Let&apos;s create some awesome tasks! 🎯",
     "Time to be amazing! ✨",
     "Your daily missions await! 🚀",
-  ]
+  ];
 
   // Character rotation effect
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentCharacter((prev) => (prev + 1) % characters.length)
-    }, 2000)
-    return () => clearInterval(interval)
-  }, [characters.length])
+      setCurrentCharacter((prev) => (prev + 1) % characters.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [characters.length]);
 
   // Welcome message rotation
   useEffect(() => {
     const interval = setInterval(() => {
-      const randomMessage = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]
-      setWelcomeMessage(randomMessage)
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [welcomeMessages])
+      const randomMessage =
+        welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+      setWelcomeMessage(randomMessage);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [welcomeMessages]);
 
   // Sound effects
   const playSound = (type) => {
     try {
-      let frequency
+      let frequency;
       switch (type) {
         case "click":
-          frequency = 800
-          break
+          frequency = 800;
+          break;
         case "success":
-          frequency = 1000
-          break
+          frequency = 1000;
+          break;
         case "error":
-          frequency = 300
-          break
+          frequency = 300;
+          break;
         default:
-          frequency = 600
+          frequency = 600;
       }
 
       // Create simple beep sound
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-      const oscillator = audioContext.createOscillator()
-      const gainNode = audioContext.createGain()
+      const audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
 
-      oscillator.connect(gainNode)
-      gainNode.connect(audioContext.destination)
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
 
-      oscillator.frequency.value = frequency
-      oscillator.type = "sine"
+      oscillator.frequency.value = frequency;
+      oscillator.type = "sine";
 
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3)
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.3
+      );
 
-      oscillator.start(audioContext.currentTime)
-      oscillator.stop(audioContext.currentTime + 0.3)
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
     } catch (error) {
-      console.log("Audio not available:", error)
+      console.log("Audio not available:", error);
     }
-  }
+  };
 
   const handleLogin = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!email || !password) {
-      setError("Please enter both email and password to continue")
-      playSound("error")
-      return
+      setError("Please enter both email and password to continue");
+      playSound("error");
+      return;
     }
 
-    setIsLoading(true)
-    setError(null)
-    playSound("click")
+    setIsLoading(true);
+    setError(null);
+    playSound("click");
 
     try {
       const response = await fetch(`${apiUrl}/users/login`, {
@@ -100,35 +106,36 @@ const LoginPage = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
-      })
+      });
 
       if (!response.ok) {
-        const text = await response.text()
-        throw new Error(text)
+        const text = await response.text();
+        throw new Error(text);
       }
 
-      const data = await response.json()
-      const { token, _id: userId, kids } = data
-      console.log("Login successful, token:", token, "kids:", kids)
+      const data = await response.json();
+      const { token, _id: userId, kids } = data;
+      console.log("Login successful, token:", token, "kids:", kids);
 
       // Save token and user data to localStorage
       if (typeof window !== "undefined") {
-        localStorage.setItem("token", token)
-        localStorage.setItem("userId", userId)
-        localStorage.setItem("kids", JSON.stringify(kids))
-        localStorage.setItem("email", email)
+        localStorage.setItem("token", token);
+        localStorage.setItem("userId", userId);
+        localStorage.setItem("kids", JSON.stringify(kids));
+        localStorage.setItem("email", email);
       }
 
-      playSound("success")
+      playSound("success");
       // Redirect to the desired page after login
-      router.push("/choosekids")
+      router.push("/choosekids");
     } catch (error) {
-      console.error("Login error:", error)
-      
+      console.error("Login error:", error);
+
       // Handle specific error cases
       let errorMsg = "Invalid email or password. Please try again.";
       if (error.response?.status === 401) {
-        errorMsg = "Incorrect email or password. Please check your credentials.";
+        errorMsg =
+          "Incorrect email or password. Please check your credentials.";
       } else if (error.response?.status === 404) {
         errorMsg = "This email is not registered. Please sign up first.";
       } else if (error.response?.status === 500) {
@@ -136,18 +143,19 @@ const LoginPage = () => {
       } else if (error.response?.data?.error) {
         errorMsg = error.response.data.error;
       }
-      
-      setError(errorMsg)
-      playSound("error")
+
+      setError(errorMsg);
+      playSound("error");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const styles = {
     body: {
       fontFamily: "Comic Sans MS",
-      background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
+      background:
+        "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
       minHeight: "100vh",
       display: "flex",
       justifyContent: "center",
@@ -307,79 +315,137 @@ const LoginPage = () => {
     inputIcon: {
       fontSize: "1.2rem",
     },
-  }
+  };
 
   return (
     <div style={styles.body}>
       <style jsx>{`
         @keyframes slideInUp {
-          from { transform: translateY(50px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
+          from {
+            transform: translateY(50px);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
         }
-        
+
         @keyframes bounce {
-          0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-          40% { transform: translateY(-20px); }
-          60% { transform: translateY(-10px); }
+          0%,
+          20%,
+          50%,
+          80%,
+          100% {
+            transform: translateY(0);
+          }
+          40% {
+            transform: translateY(-20px);
+          }
+          60% {
+            transform: translateY(-10px);
+          }
         }
-        
+
         @keyframes rainbow {
-          0% { color: #ff0000; }
-          16% { color: #ff8000; }
-          33% { color: #ffff00; }
-          50% { color: #00ff00; }
-          66% { color: #0080ff; }
-          83% { color: #8000ff; }
-          100% { color: #ff0000; }
+          0% {
+            color: #ff0000;
+          }
+          16% {
+            color: #ff8000;
+          }
+          33% {
+            color: #ffff00;
+          }
+          50% {
+            color: #00ff00;
+          }
+          66% {
+            color: #0080ff;
+          }
+          83% {
+            color: #8000ff;
+          }
+          100% {
+            color: #ff0000;
+          }
         }
-        
+
         @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.7;
+          }
         }
-        
+
         @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(180deg); }
+          0%,
+          100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-20px) rotate(180deg);
+          }
         }
-        
+
         @keyframes wiggle {
-          0%, 100% { transform: rotate(0deg); }
-          25% { transform: rotate(5deg); }
-          75% { transform: rotate(-5deg); }
+          0%,
+          100% {
+            transform: rotate(0deg);
+          }
+          25% {
+            transform: rotate(5deg);
+          }
+          75% {
+            transform: rotate(-5deg);
+          }
         }
-        
+
         @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-5px); }
-          75% { transform: translateX(5px); }
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          25% {
+            transform: translateX(-5px);
+          }
+          75% {
+            transform: translateX(5px);
+          }
         }
-        
+
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
-        
+
         .form-input:focus {
           border-color: #667eea;
-          box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
           transform: scale(1.02);
         }
-        
+
         .submit-btn:hover:not(:disabled) {
           transform: translateY(-3px);
-          box-shadow: 0 12px 35px rgba(102,126,234,0.5);
+          box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
         }
-        
+
         .password-toggle:hover {
-          background-color: rgba(102,126,234,0.1);
+          background-color: rgba(102, 126, 234, 0.1);
         }
-        
+
         .form-container:hover {
           transform: translateY(-5px);
-          box-shadow: 0 25px 70px rgba(0,0,0,0.35);
+          box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
         }
-        
+
         @media (max-width: 600px) {
           .password-toggle {
             display: none !important;
@@ -389,12 +455,66 @@ const LoginPage = () => {
 
       {/* Background floating elements */}
       <div style={styles.backgroundElements}>
-        <div style={{ ...styles.floatingElement, top: "10%", left: "10%", animationDelay: "0s" }}>🎮</div>
-        <div style={{ ...styles.floatingElement, top: "20%", right: "15%", animationDelay: "1s" }}>⭐</div>
-        <div style={{ ...styles.floatingElement, bottom: "30%", left: "5%", animationDelay: "2s" }}>🎯</div>
-        <div style={{ ...styles.floatingElement, bottom: "20%", right: "10%", animationDelay: "3s" }}>🏆</div>
-        <div style={{ ...styles.floatingElement, top: "50%", left: "3%", animationDelay: "4s" }}>🌟</div>
-        <div style={{ ...styles.floatingElement, top: "60%", right: "5%", animationDelay: "5s" }}>🎨</div>
+        <div
+          style={{
+            ...styles.floatingElement,
+            top: "10%",
+            left: "10%",
+            animationDelay: "0s",
+          }}
+        >
+          🎮
+        </div>
+        <div
+          style={{
+            ...styles.floatingElement,
+            top: "20%",
+            right: "15%",
+            animationDelay: "1s",
+          }}
+        >
+          ⭐
+        </div>
+        <div
+          style={{
+            ...styles.floatingElement,
+            bottom: "30%",
+            left: "5%",
+            animationDelay: "2s",
+          }}
+        >
+          🎯
+        </div>
+        <div
+          style={{
+            ...styles.floatingElement,
+            bottom: "20%",
+            right: "10%",
+            animationDelay: "3s",
+          }}
+        >
+          🏆
+        </div>
+        <div
+          style={{
+            ...styles.floatingElement,
+            top: "50%",
+            left: "3%",
+            animationDelay: "4s",
+          }}
+        >
+          🌟
+        </div>
+        <div
+          style={{
+            ...styles.floatingElement,
+            top: "60%",
+            right: "5%",
+            animationDelay: "5s",
+          }}
+        >
+          🎨
+        </div>
       </div>
 
       <div style={styles.formContainer} className="form-container">
@@ -403,10 +523,14 @@ const LoginPage = () => {
 
         {/* Header */}
         <div style={styles.header}>
-          <span style={styles.characterDisplay}>{characters[currentCharacter]}</span>
+          <span style={styles.characterDisplay}>
+            {characters[currentCharacter]}
+          </span>
           <h1 style={styles.title}>🎮 Login 🎮</h1>
           <p style={styles.subtitle}>Welcome back, Super Star!</p>
-          <p style={styles.welcomeMessage}>{welcomeMessage || "Ready for your next adventure? 🚀"}</p>
+          <p style={styles.welcomeMessage}>
+            {welcomeMessage || "Ready for your next adventure? 🚀"}
+          </p>
         </div>
 
         {/* Error message */}
@@ -448,8 +572,8 @@ const LoginPage = () => {
               <button
                 type="button"
                 onClick={() => {
-                  setShowPassword(!showPassword)
-                  playSound("click")
+                  setShowPassword(!showPassword);
+                  playSound("click");
                 }}
                 style={styles.passwordToggle}
                 className="password-toggle"
@@ -480,12 +604,19 @@ const LoginPage = () => {
         </form>
 
         {/* Fun facts */}
-        <div style={{ textAlign: "center", marginTop: "20px", color: "#718096", fontSize: "0.9rem" }}>
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: "20px",
+            color: "#718096",
+            fontSize: "0.9rem",
+          }}
+        >
           <p>🌟 Fun Fact: You&apos;re about to create amazing memories! 🌟</p>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default LoginPage
+export default LoginPage;

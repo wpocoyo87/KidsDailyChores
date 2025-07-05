@@ -20,6 +20,7 @@ connectDB();
 const allowedOrigins = [
   "https://kids-daily-chores.vercel.app",
   "https://kids-daily-chores-git-safwan-khatys-projects.vercel.app",
+  "https://kids-daily-chores-git-kty-win-repair-khatys-projects.vercel.app"
   "http://localhost:3000",
 ];
 

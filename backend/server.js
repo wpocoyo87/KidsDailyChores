@@ -20,7 +20,7 @@ connectDB();
 const allowedOrigins = [
   "https://kids-daily-chores.vercel.app",
   "https://kids-daily-chores-git-safwan-khatys-projects.vercel.app",
-  "https://kids-daily-chores-git-kty-win-repair-khatys-projects.vercel.app"
+  "https://kids-daily-chores-git-kty-win-repair-khatys-projects.vercel.app",
   "http://localhost:3000",
 ];
 
@@ -28,20 +28,23 @@ app.use(bodyParser.json());
 app.use(express.json());
 
 // Configure CORS
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    console.error("Blocked by CORS:", origin);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+};
 
-// Handle preflight requests for all routes
-app.options("*", cors());
+app.use(cors(corsOptions));
+// Handle preflight requests for all routes with same options
+app.options("*", cors(corsOptions));
+// For debugging only: allow all origins (uncomment if needed)
+// app.use(cors());
+// app.options("*", cors());
 
 // Mount routes
 app.use("/api/users", userRoutes);

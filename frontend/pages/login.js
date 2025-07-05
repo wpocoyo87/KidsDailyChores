@@ -644,21 +644,20 @@ const LoginPage = () => {
         >
           <p style={{ margin: "5px 0" }}>
             Don&apos;t have an account?{" "}
-            <Link href="/register" legacyBehavior>
-              <a
-                style={{
-                  color: "#667eea",
-                  textDecoration: "none",
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) =>
-                  (e.target.style.textDecoration = "underline")
-                }
-                onMouseLeave={(e) => (e.target.style.textDecoration = "none")}
-              >
-                Register here
-              </a>
+            <Link
+              href="/register"
+              style={{
+                color: "#667eea",
+                textDecoration: "none",
+                fontWeight: "bold",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) =>
+                (e.target.style.textDecoration = "underline")
+              }
+              onMouseLeave={(e) => (e.target.style.textDecoration = "none")}
+            >
+              Register here
             </Link>
           </p>
           <p style={{ margin: "5px 0" }}>

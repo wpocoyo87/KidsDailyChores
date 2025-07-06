@@ -465,7 +465,8 @@ const InsertTask = () => {
       setStoredSelectedKid(kid);
       setSelectedKid(kid);
       if (kid && kid.gender) {
-        setGender(kid.gender.toLowerCase());
+        const genderValue = kid.gender === "female" ? "Girl" : "Boy";
+        setGender(genderValue);
       }
     }
   }, [storageVersion]);
@@ -1113,9 +1114,20 @@ const InsertTask = () => {
                   🎨
                 </div>
                 <h3 style={styles.cardTitle}>🖼️ Choose Your Mission Icon</h3>
+                {gender && (
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "#666",
+                      marginLeft: "10px",
+                    }}
+                  >
+                    Gender: {gender}
+                  </span>
+                )}
               </div>
               <div style={styles.imageGrid} className="image-carousel">
-                {selectedKid &&
+                {selectedKid && gender ? (
                   fetchImages(gender).map((imgPath, index) => (
                     <img
                       key={index}
@@ -1129,8 +1141,25 @@ const InsertTask = () => {
                       }}
                       className="image-item"
                       onClick={() => handleImageClick(imgPath)}
+                      onError={(e) => {
+                        console.error(`Failed to load image: ${imgPath}`);
+                        // Use default task images as fallback (task1.png - task12.png)
+                        const taskNumber = index + 1;
+                        e.target.src = `/images/task${taskNumber}.png`;
+                      }}
                     />
-                  ))}
+                  ))
+                ) : (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "20px",
+                      color: "#666",
+                    }}
+                  >
+                    Loading images...
+                  </div>
+                )}
               </div>
             </div>
 
